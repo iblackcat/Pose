@@ -27,11 +27,14 @@
     <ClInclude Include="src\pose_estimation2d2d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\image_rectification.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gl_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\dataset_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,6 +42,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\pose_estimation2d2d.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\image_rectification.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gl_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

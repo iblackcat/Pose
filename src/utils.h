@@ -131,6 +131,16 @@ public:
 		se3 = SE3_Rt.log();
 		center = -(R.inverse() * t);
 	}
+
+	static CameraPose Identity() {
+		CameraPose p;
+		p.R = Eigen::Matrix3d::Identity();
+		p.t = Eigen::Vector3d::Zero();
+		p.intrinsics = G.Intrinsic;
+		p.refreshByARt();
+
+		return p;
+	}
 	/*
 	double3 getRotation(Matrix33d m) {
 		double3 tmp;

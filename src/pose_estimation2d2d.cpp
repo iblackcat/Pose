@@ -1,4 +1,5 @@
 #include "pose_estimation2d2d.h"
+#include <vector>
 
 using namespace std;
 using namespace cv;
@@ -21,10 +22,21 @@ CameraPose PoseEstimation2d2d::pose_estimation2d2d(u32 *image1, u32 *image2) {
 	cvtColor(temp_1, img_1, CV_RGBA2BGRA);
 	cvtColor(temp_2, img_2, CV_RGBA2BGRA);
 
+
 	vector<KeyPoint> keypoints_1, keypoints_2;
 	vector<DMatch> matches;
 	find_feature_matches(img_1, img_2, keypoints_1, keypoints_2, matches);
 	cout << "found " << matches.size() << "matches." << endl;
+
+	imshow("i1", img_1);
+	imshow("i2", img_2);
+	Mat img_match;
+	drawMatches(temp_1, keypoints_1, temp_2, keypoints_2, matches, img_match, Scalar::all(-1), Scalar::all(-1),
+		vector<char>(0), DrawMatchesFlags::DEFAULT);
+	imshow("matches", img_match);
+
+
+	cvWaitKey(0);
 
 	// -- get E
 	Mat R, t;
@@ -38,9 +50,6 @@ CameraPose PoseEstimation2d2d::pose_estimation2d2d(u32 *image1, u32 *image2) {
 	cout << "fundamental_matrix is " << endl << fundamental_matrix << endl;
 
 	Point2d principal_point(G.cx, G.cy);
-
-	//imshow("show", img_2);
-	//cvWaitKey(0);
 
 	return CameraPose();
 }
