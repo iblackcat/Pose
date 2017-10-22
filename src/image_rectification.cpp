@@ -3,6 +3,8 @@
 
 namespace mf {
 
+using namespace std;
+
 bool ImageRectification::init() {
 	if (!m_gl_rectify.init(G.w, G.h))
 		return false;
@@ -13,9 +15,15 @@ bool ImageRectification::init() {
 	return true;
 } 
 
-void ImageRectification::get_rectified_pose(const CameraPose &p1, const CameraPose &p2, CameraPose &p1_rec, CameraPose &p2_rec) {
+bool ImageRectification::get_rectified_pose(const CameraPose &p1, const CameraPose &p2, CameraPose &p1_rec, CameraPose &p2_rec) {
+	if (p1.center == p2.center) {
+		p1_rec = p1;
+		p2_rec = p2;
+		return false;
+	}
+		 
 	Eigen::Matrix3d A = (p1.intrinsics + p2.intrinsics) / 2;
-	Eigen::Vector3d v1 = p1.center - p2.center;
+	Eigen::Vector3d v1 = p1.center - p2.center; 
 	Eigen::Vector3d v2 = p1.R.row(2).cross(v1);
 	Eigen::Vector3d v3 = v1.cross(v2);
 	Eigen::Matrix3d R;
@@ -32,11 +40,19 @@ void ImageRectification::get_rectified_pose(const CameraPose &p1, const CameraPo
 	p2_rec.intrinsics = A;
 	p2_rec.t = -(R * p2.center);
 	p2_rec.refreshByARt();
+
+	std::cout << "P1" << std::endl << p1.R << std::endl << p1.t << std::endl;
+	std::cout << "P1_rec" << std::endl << p1_rec.R << std::endl << p1_rec.t << std::endl;
+
+	std::cout << std::endl;
+
+	std::cout << "P2" << std::endl << p2.R << std::endl << p2.t << std::endl;
+	std::cout << "P2_rec" << std::endl << p2_rec.R << std::endl << p2_rec.t << std::endl;
+
+	return true;
 }
 
-void ImageRectification::image_rectification(const u32 *image1, const u32 *image2, const CameraPose &p1, const CameraPose &p2, u32 **image1_rec, u32 **image2_rec) {
-	CameraPose p1_rec, p2_rec;
-	
+void ImageRectification::image_rectification(const u32 *image1, const u32 *image2, const CameraPose &p1, const CameraPose &p2, u32 **image1_rec, u32 **image2_rec, CameraPose &p1_rec, CameraPose &p2_rec) {
 	get_rectified_pose(p1, p2, p1_rec, p2_rec);
 
 	Eigen::Matrix3d rect_tran1 = p1.Q * p1_rec.Q.inverse();
@@ -47,13 +63,18 @@ void ImageRectification::image_rectification(const u32 *image1, const u32 *image
 	if (!image1_rec) { free(image1_rec); image1_rec = NULL; }
 	if (!image2_rec) { free(image2_rec); image2_rec = NULL; }
 
+	cout << "rect1" << rect_tran1 << endl;
+	cout << "rect2" << rect_tran2 << endl;
+
 	float trans1[16] = { 0 }, trans2[16] = { 0 };
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
 			if (i == 3 && j == 3) { trans1[i * 4 + j] = 1.0f; trans2[i * 4 + j] = 1.0f; }
 			else if (i == 3 || j == 3) { trans1[i * 4 + j] = 0.0f; trans2[i * 4 + j] = 0.0f; }
 			else { trans1[i * 4 + j] = (float)rect_tran1(j, i); trans2[i * 4 + j] = (float)rect_tran2(j, i); }
+			cout << trans2[i * 4 + j] << " ";
 		}
+		cout << endl;
 	}
 
 	u32 *rec1 = nullptr, *rec2 = nullptr;

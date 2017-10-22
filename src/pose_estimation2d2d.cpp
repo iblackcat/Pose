@@ -15,6 +15,36 @@ PoseEstimation2d2d::~PoseEstimation2d2d()
 {
 }
 
+void PoseEstimation2d2d::visualization(const Mat &img_1, const Mat &img_2,
+										const vector<KeyPoint> &keypoints_1,
+										const vector<KeyPoint> &keypoints_2,
+										const vector<DMatch> &matches) {
+	imshow("i1", img_1);
+	imshow("i2", img_2);
+	//Mat img_match;
+	//drawMatches(temp_1, keypoints_1, temp_2, keypoints_2, matches, img_match, Scalar::all(-1), Scalar::all(-1), \
+			vector<char>(0), DrawMatchesFlags::DEFAULT);
+	//imshow("matches", img_match);
+
+	Mat img_show(img_1.rows * 2, img_1.cols, CV_8UC4);
+	img_1.copyTo(img_show(Rect(0, 0, img_1.cols, img_1.rows)));
+	img_2.copyTo(img_show(Rect(0, img_1.rows, img_1.cols, img_1.rows)));
+	for (DMatch m : matches) {
+		Point2d pt1 = keypoints_1[m.queryIdx].pt;
+		Point2d pt2 = keypoints_2[m.trainIdx].pt;
+
+		float b = 255 * float(rand()) / RAND_MAX;
+		float g = 255 * float(rand()) / RAND_MAX;
+		float r = 255 * float(rand()) / RAND_MAX;
+		circle(img_show, pt1, 8, Scalar(b, g, r), 2);
+		circle(img_show, Point2d(pt2.x, pt2.y + img_1.rows), 8, Scalar(b, g, r), 2);
+		line(img_show, pt1, Point2d(pt2.x, pt2.y + img_1.rows), Scalar(b, g, r), 1);
+	}
+
+	imshow("result", img_show);
+	waitKey(0);
+}
+
 CameraPose PoseEstimation2d2d::pose_estimation2d2d(u32 *image1, u32 *image2) {
 	Mat temp_1(G.h, G.w, CV_8UC4, image1);
 	Mat temp_2(G.h, G.w, CV_8UC4, image2);
@@ -22,21 +52,14 @@ CameraPose PoseEstimation2d2d::pose_estimation2d2d(u32 *image1, u32 *image2) {
 	cvtColor(temp_1, img_1, CV_RGBA2BGRA);
 	cvtColor(temp_2, img_2, CV_RGBA2BGRA);
 
-
+	//find matches
 	vector<KeyPoint> keypoints_1, keypoints_2;
 	vector<DMatch> matches;
 	find_feature_matches(img_1, img_2, keypoints_1, keypoints_2, matches);
 	cout << "found " << matches.size() << "matches." << endl;
 
-	imshow("i1", img_1);
-	imshow("i2", img_2);
-	Mat img_match;
-	drawMatches(temp_1, keypoints_1, temp_2, keypoints_2, matches, img_match, Scalar::all(-1), Scalar::all(-1),
-		vector<char>(0), DrawMatchesFlags::DEFAULT);
-	imshow("matches", img_match);
-
-
-	cvWaitKey(0);
+	//visualization
+	visualization(img_1, img_2, keypoints_1, keypoints_2, matches);
 
 	// -- get E
 	Mat R, t;
@@ -50,8 +73,27 @@ CameraPose PoseEstimation2d2d::pose_estimation2d2d(u32 *image1, u32 *image2) {
 	cout << "fundamental_matrix is " << endl << fundamental_matrix << endl;
 
 	Point2d principal_point(G.cx, G.cy);
+	Mat essential_matrix;
+	essential_matrix = findEssentialMat(points1, points2, G.focallength, principal_point);
 
-	return CameraPose();
+	recoverPose(essential_matrix, points1, points2, R, t, G.focallength, principal_point);
+
+
+	Eigen::Matrix3d poseR;
+	Eigen::Vector3d poset;
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < 3; ++j) {
+			poseR(i, j) = R.at<double>(i, j);
+		}
+		poset[i] = t.at<double>(i, 0);
+	}
+	/*
+	cout << "R" << endl << R << endl;
+	cout << "R - " << endl << poseR << endl;
+	cout << "t" << endl << t << endl;
+	cout << "t - " << endl << poset << endl;
+	*/
+	return CameraPose(G.Intrinsic, poseR, poset);
 }
 
 void PoseEstimation2d2d::find_feature_matches(const cv::Mat& img_1, const cv::Mat& img_2,
@@ -81,7 +123,7 @@ void PoseEstimation2d2d::find_feature_matches(const cv::Mat& img_1, const cv::Ma
 	}
 	//当描述子之间的距离大于两倍的最小距离时,即认为匹配有误.但有时候最小距离会非常小,设置一个经验值30作为下限
 	for (int i = 0; i < descriptors_1.rows; ++i) {
-		if (match[i].distance <= max(2 * min_dist, 30.0))
+		if (match[i].distance <= max(2 * min_dist, 25.0))
 			matches.push_back(match[i]);
 	}
 }

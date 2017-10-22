@@ -22,6 +22,13 @@ public:
 							std::vector<cv::KeyPoint>& keypoints_1,
 							std::vector<cv::KeyPoint>& keypoints_2,
 							std::vector<cv::DMatch>& matches);
+
+	void visualization(const cv::Mat &img_1, const cv::Mat &img_2, 
+					const std::vector<cv::KeyPoint> &keypoints_1, 
+					const std::vector<cv::KeyPoint> &keypoints_2,
+					const std::vector<cv::DMatch> &matches);
+
+
 };
 
 } // namespace mf;
