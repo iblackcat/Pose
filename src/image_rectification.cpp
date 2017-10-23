@@ -18,7 +18,7 @@ bool ImageRectification::init() {
 bool ImageRectification::get_rectified_pose(const CameraPose &p1, const CameraPose &p2, CameraPose &p1_rec, CameraPose &p2_rec) {
 	if (p1.center == p2.center) {
 		p1_rec = p1;
-		p2_rec = p2;
+		p2_rec = p1;
 		return false;
 	}
 		 
@@ -34,12 +34,14 @@ bool ImageRectification::get_rectified_pose(const CameraPose &p1, const CameraPo
 	p1_rec.R = R;
 	p1_rec.intrinsics = A;
 	p1_rec.t = -(R * p1.center);
-	p1_rec.refreshByARt();
+	p1_rec = CameraPose(A, R, p1_rec.t);
+	//p1_rec.refreshByARt();
 
 	p2_rec.R = R;
 	p2_rec.intrinsics = A;
 	p2_rec.t = -(R * p2.center);
-	p2_rec.refreshByARt();
+	p2_rec = CameraPose(A, R, p2_rec.t);
+	//p2_rec.refreshByARt();
 
 	std::cout << "P1" << std::endl << p1.R << std::endl << p1.t << std::endl;
 	std::cout << "P1_rec" << std::endl << p1_rec.R << std::endl << p1_rec.t << std::endl;
@@ -57,6 +59,24 @@ void ImageRectification::image_rectification(const u32 *image1, const u32 *image
 
 	Eigen::Matrix3d rect_tran1 = p1.Q * p1_rec.Q.inverse();
 	Eigen::Matrix3d rect_tran2 = p2.Q * p2_rec.Q.inverse();
+
+	Eigen::Vector3d test1 = p2.R * Eigen::Vector3d(245, 211, 1) + p2.t;
+	test1[0] /= test1[2]; test1[1] /= test1[2];
+
+	Eigen::Vector3d test2 = rect_tran2.inverse() * Eigen::Vector3d(231, 219, 1);
+	test2[0] /= test2[2]; test2[1] /= test2[2];
+
+	cout << "test1 : " << test1.transpose() << ", " << test2.transpose() << endl;
+
+
+	test1 = rect_tran1.inverse() * Eigen::Vector3d(49, 267, 1);
+	test1[0] /= test1[2]; test1[1] /= test1[2];
+
+	test2 = rect_tran2.inverse() * Eigen::Vector3d(37, 264, 1);
+	test2[0] /= test2[2]; test2[1] /= test2[2];
+
+	cout << "test2 : " << test1.transpose() << ", " << test2.transpose() << endl;
+
 
 	m_gl_rectify.useRenderer();
 

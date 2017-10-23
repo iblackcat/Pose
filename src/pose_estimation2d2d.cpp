@@ -39,6 +39,9 @@ void PoseEstimation2d2d::visualization(const Mat &img_1, const Mat &img_2,
 		circle(img_show, pt1, 8, Scalar(b, g, r), 2);
 		circle(img_show, Point2d(pt2.x, pt2.y + img_1.rows), 8, Scalar(b, g, r), 2);
 		line(img_show, pt1, Point2d(pt2.x, pt2.y + img_1.rows), Scalar(b, g, r), 1);
+
+		cout << "pt1: " << pt1 << endl;
+		cout << "pt2: " << pt2 << endl;
 	}
 
 	imshow("result", img_show);
@@ -74,9 +77,9 @@ CameraPose PoseEstimation2d2d::pose_estimation2d2d(u32 *image1, u32 *image2) {
 
 	Point2d principal_point(G.cx, G.cy);
 	Mat essential_matrix;
-	essential_matrix = findEssentialMat(points1, points2, G.focallength, principal_point);
+	essential_matrix = findEssentialMat(points1, points2, G.fx, principal_point);
 
-	recoverPose(essential_matrix, points1, points2, R, t, G.focallength, principal_point);
+	recoverPose(essential_matrix, points1, points2, R, t, G.fx, principal_point);
 
 
 	Eigen::Matrix3d poseR;
