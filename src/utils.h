@@ -311,7 +311,12 @@ static float rgba2gray(u32 rgba) {
 	if (a == 0.0) return 0.0;
 	else return r*0.299 + g*0.587 + b*0.114;
 }
-
+/*
+?!
+static float getDepth(u32 depth) {
+	
+}
+*/
 } //namespace mf
 
 #endif //UTILS_H

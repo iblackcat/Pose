@@ -159,6 +159,7 @@
     <ClInclude Include="src\image_rectification.h" />
     <ClInclude Include="src\pose_estimation.h" />
     <ClInclude Include="src\pose_estimation2d2d.h" />
+    <ClInclude Include="src\pose_estimation3d2d.h" />
     <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <ItemGroup>
@@ -167,6 +168,7 @@
     <ClCompile Include="src\image_rectification.cpp" />
     <ClCompile Include="src\pose_estimation.cpp" />
     <ClCompile Include="src\pose_estimation2d2d.cpp" />
+    <ClCompile Include="src\pose_estimation3d2d.cpp" />
     <ClCompile Include="src\Source.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,5 +1,6 @@
 #pragma once
 #include "utils.h"
+#include "pose_estimation.h"
 
 #include <vector>
 
@@ -11,24 +12,13 @@
 
 namespace mf {
 
-class PoseEstimation2d2d
+class PoseEstimation2d2d : public PoseEstimation
 {
 public:
 	PoseEstimation2d2d();
 	~PoseEstimation2d2d();
 
 	CameraPose pose_estimation2d2d(u32 *image1, u32 *image2);
-	void find_feature_matches(const cv::Mat& img_1, const cv::Mat& img_2, 
-							std::vector<cv::KeyPoint>& keypoints_1,
-							std::vector<cv::KeyPoint>& keypoints_2,
-							std::vector<cv::DMatch>& matches);
-
-	void visualization(const cv::Mat &img_1, const cv::Mat &img_2, 
-					const std::vector<cv::KeyPoint> &keypoints_1, 
-					const std::vector<cv::KeyPoint> &keypoints_2,
-					const std::vector<cv::DMatch> &matches);
-
-
 };
 
 } // namespace mf;
