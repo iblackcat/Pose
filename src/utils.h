@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define _WINDOWS
+
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>

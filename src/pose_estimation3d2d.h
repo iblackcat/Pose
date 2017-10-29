@@ -25,7 +25,7 @@ public:
 	PoseEstimation3d2d();
 	~PoseEstimation3d2d();
 
-	CameraPose pose_estimation3d2d(u32 *image1, u32 *depth, u32 *image2);
+	CameraPose pose_estimation3d2d(u32 *image1, const char *path, u32 *image2);
 };
 
 } // namespace mf

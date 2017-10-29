@@ -20,7 +20,7 @@
 #ifndef NCOMPLEX
 #define NCOMPLEX
 #endif
-#include <cs.h>
+#include <EXTERNAL/csparse/cs.h>
 
 #include "g2o_csparse_extension_api.h"
 

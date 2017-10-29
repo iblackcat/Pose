@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "dataset_helper.h"
 #include "pose_estimation2d2d.h"
+#include "pose_estimation3d2d.h"
 #include "image_rectification.h"
 
 #include <opencv2/core/core.hpp>
@@ -31,15 +32,21 @@ int main() {
 	G = G640;
 	cout << G.w << endl;
 	jhw_gl::GLInit(G.w, G.h);
+
+	FILE *fin = fopen("res/test1.txt", "r");
+	char path1[1024], path2[1024], path3[1024];
+	fscanf(fin, " %s %s %s", path1, path2, path3);
 	
 	DatasetHelper DH;
 	
-	u32 *i1 = (u32*)DH.readImage("res/1.png");
-	u32 *i2 = (u32*)DH.readImage("res/2.png");
+	u32 *i1 = (u32*)DH.readImage(path1);
+	u32 *i2 = (u32*)DH.readImage(path2);
 
 	//ignore_blank_pixel(i1);
 	//ignore_blank_pixel(i2);
 
+	//2d2d
+	/*
 	PoseEstimation2d2d poseguess;
 	CameraPose p2 = poseguess.pose_estimation2d2d(i1, i2);
 	CameraPose p1 = CameraPose::Identity();
@@ -50,6 +57,13 @@ int main() {
 	poset = Eigen::Vector3d(0.0, 0.2, 0.0);
 	CameraPose p2(G.Intrinsic, poseR, poset);
 	*/
+
+	//3d2d
+	
+	PoseEstimation3d2d poseguess;
+	CameraPose p2 = poseguess.pose_estimation3d2d(i1, path3, i2);
+	CameraPose p1(p2.intrinsics, Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 0));
+	
 	cout << "p2 " << endl << p2.R << endl << p2.t.transpose() << endl;
 	 
 	u32 *i1_rec = nullptr, *i2_rec = nullptr;
