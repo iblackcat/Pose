@@ -1,3 +1,3 @@
-res/1.png
-res/2.png
+E:/projects/mobilefusion/datasets/0/0.jpg
+E:/projects/mobilefusion/datasets/0/1.jpg
 res/1_depth.png

@@ -5,6 +5,7 @@
 #include "pose_estimation2d2d.h"
 #include "pose_estimation3d2d.h"
 #include "image_rectification.h"
+#include "stereo_matching.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -46,24 +47,17 @@ int main() {
 	//ignore_blank_pixel(i2);
 
 	//2d2d
-	/*
+	
 	PoseEstimation2d2d poseguess;
 	CameraPose p2 = poseguess.pose_estimation2d2d(i1, i2);
 	CameraPose p1 = CameraPose::Identity();
-	/*
-	Eigen::Matrix3d poseR = Eigen::AngleAxisd(0.1, Eigen::Vector3d(0.0, 0.0, 1.0).normalized()).toRotationMatrix();
-	Eigen::Vector3d poset = Eigen::Vector3d(0.0, 1.0, 0.0);
-	poseR = Eigen::AngleAxisd(0.1, Eigen::Vector3d(0.0, 0.0, 1.0).normalized()).toRotationMatrix();
-	poset = Eigen::Vector3d(0.0, 0.2, 0.0);
-	CameraPose p2(G.Intrinsic, poseR, poset);
-	*/
 
 	//3d2d
-	
+	/*
 	PoseEstimation3d2d poseguess;
 	CameraPose p2 = poseguess.pose_estimation3d2d(i1, path3, i2);
 	CameraPose p1(p2.intrinsics, Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 0));
-	
+	*/
 	cout << "p2 " << endl << p2.R << endl << p2.t.transpose() << endl;
 	 
 	u32 *i1_rec = nullptr, *i2_rec = nullptr;
@@ -72,7 +66,26 @@ int main() {
 	imagerectify.init();
 	imagerectify.image_rectification(i1, i2, p1, p2, &i1_rec, &i2_rec, p1_rec, p2_rec);
 
+
 	DH.writeImage(i1_rec, "out1.png");
 	DH.writeImage(i2_rec, "out2.png");
+	
+	
+	float *delta1, *delta2;
+	StereoMatching stereomatch;
+	stereomatch.init();
+	stereomatch.disparity_estimation(i1_rec, i2_rec, &delta1, &delta2);
+
+	int index = 0;
+	for (int i = 0; i < G.h; ++i) {
+		for (int j = 0; j < G.w; ++j) {
+			if (index == 100) break;
+			if (delta1[i*G.w + j] > 0) {
+				cout << delta1[i*G.w + j] << endl;
+				index++;
+			}
+		}
+	}
+	
 	return 0;
 }
