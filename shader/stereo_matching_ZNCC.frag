@@ -8,7 +8,7 @@ uniform int step;
 uniform int radius; // patch = (2*radius+1)x(2*radius+1)
 uniform sampler2D tex;
 uniform sampler2D tex2;
-out vec4 FragColor;  
+out float FragColor;  
 
 int d_max = 64;
 float MAX_FLOAT = 1000000;
@@ -113,7 +113,7 @@ void main()
 	min_C = MAX_FLOAT;
 	
 	//invalid value
-	if (i1.a == 0.0 || gray1 == 0.0) FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+	if (i1.a == 0.0 || gray1 == 0.0) FragColor = 0.0; //vec4(0.0, 0.0, 0.0, 0.0);
 	else {
 		delta = 0.0;
 		for (int k=0; k<d_max; k++) {
@@ -160,9 +160,9 @@ void main()
 			}
 		}
 		
-		if (delta == 0.0) FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+		if (delta == 0.0) FragColor = 0.0; //vec4(0.0, 0.0, 0.0, 0.0);
 		else {
-			FragColor = float2depth_rgba(delta);
+			FragColor = delta; //float2depth_rgba(delta);
 		}
 	}
 }  

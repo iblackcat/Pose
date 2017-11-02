@@ -122,6 +122,8 @@ public:
 		const char *vert_shader = ReadShaderFile(vert_path);
 		const char *frag_shader = ReadShaderFile(frag_path);
 
+		if (!vert_shader || !frag_shader) return false;
+
 		return UseShaders(vert_shader, frag_shader);
 	}
 
@@ -148,10 +150,10 @@ public:
 	~GLRTT() {
 		DeleteRTT();
 	}
-	void CreateRTT(int width, int height, GLuint internalformat, GLuint inputformat = GL_RGB) {
+	void CreateRTT(int width, int height, GLuint internalformat = GL_RGBA8, GLuint format = GL_RGBA, GLuint type = GL_UNSIGNED_BYTE) {
 		SetFrameSize(width, height);
 		glGenFramebuffers(1, &m_frameBuffer);
-		CreateColorBuffer(internalformat, inputformat);
+		CreateColorBuffer(internalformat, format, type);
 		CreateDepthBuffer();
 
 		/*SetFrameSize(width, height);
@@ -198,13 +200,13 @@ public:
 		glGenFramebuffers(1, &m_frameBuffer);
 	}
 	//internalFormat, GL_RGBA8
-	bool CreateColorBuffer(GLuint internalFormat, GLuint inputformat) {
+	bool CreateColorBuffer(GLuint internalFormat, GLuint format, GLuint type) {
 		if (m_width == 0 || m_height == 0 || m_frameBuffer == 0u)
 			return false;
 		//creat color buffer
 		glGenTextures(1, &m_colorBuffer);
 		glBindTexture(GL_TEXTURE_2D, m_colorBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_width, m_height, 0, inputformat, GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_width, m_height, 0, format, type, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0u);
@@ -294,15 +296,28 @@ public:
 	changing vertices and add ebo by inherit this class.
 	*/
 
-	bool init(int w, int h, int rtt_channel = 4, GLenum rtt_data_type = GL_UNSIGNED_BYTE) {
-		switch (rtt_channel) {
-		case 1: m_rtt_type = GL_R; break;
-		case 3: m_rtt_type = GL_RGB; break;
-		case 4: m_rtt_type = GL_RGBA; break;
-		default: return false;
+	bool init(int w, int h, GLuint rtt_internalformat = GL_RGBA8, GLuint rtt_format = GL_RGBA, GLenum rtt_type = GL_UNSIGNED_BYTE) {
+		switch (rtt_format) {
+		case GL_RED: 
+		case GL_GREEN:
+		case GL_BLUE:
+			m_rtt_channel = 1; 
+			break;
+		case GL_RG: 
+			m_rtt_channel = 2; 
+			break;
+		case GL_RGB:
+			m_rtt_channel = 3;
+			break;
+		case GL_RGBA: 
+			m_rtt_channel = 4; 
+			break;
+		default: 
+			return false;
 		}
-		m_rtt_channel = rtt_channel;
-		m_rtt_data_type = rtt_data_type;
+		m_rtt_internalformat = rtt_internalformat;
+		m_rtt_format = rtt_format;
+		m_rtt_type = rtt_type;
 
 		m_width = w;
 		m_height = h;
@@ -329,7 +344,7 @@ public:
 		glutReshapeWindow(w, h);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-		m_rtt.CreateRTT(w, h, m_rtt_type, m_rtt_type);
+		m_rtt.CreateRTT(w, h, m_rtt_internalformat, m_rtt_format, m_rtt_type);
 		m_program.CreateProgram();
 		return true;
 	}
@@ -357,16 +372,16 @@ public:
 		glBufferData(GL_ARRAY_BUFFER, sizeof(float)*m_vertice * 5, vertices, GL_STATIC_DRAW);
 	}
 	
-	GLTex2d CreateTexture(GLuint *tex_id, int w, int h, GLenum image_type = GL_RGBA, GLenum image_format = GL_UNSIGNED_BYTE) {
+	GLTex2d CreateTexture(GLuint *tex_id, int w, int h, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE) {
 		glGenTextures(1, tex_id);
 		glBindTexture(GL_TEXTURE_2D, *tex_id);
-		glTexImage2D(GL_TEXTURE_2D, 0, image_type, w, h, 0, image_type, image_format, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, w, h, 0, format, type, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); // use const edge color
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 		glBindTexture(GL_TEXTURE_2D, 0u);
-		return GLTex2d(w, h, *tex_id, image_format, image_type);
+		return GLTex2d(w, h, *tex_id, format, type);
 	}
 	
 	bool useRenderer() {
@@ -397,7 +412,7 @@ public:
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		outT *new_data = (outT*)malloc(sizeof(outT) * m_width * m_height * m_rtt_channel);
-		m_rtt.GetColorData(new_data, m_rtt_type, m_rtt_data_type);
+		m_rtt.GetColorData(new_data, m_rtt_format, m_rtt_type);
 		return new_data;
 	}
 
@@ -406,10 +421,11 @@ protected:
 	int			m_height;
 	int			m_vertice;
 	int			m_triangle;
-	int			m_rtt_channel;
 	GLuint		m_vertexBuffer;
+	int			m_rtt_channel;
+	GLenum		m_rtt_internalformat;
+	GLenum		m_rtt_format;
 	GLenum		m_rtt_type;
-	GLenum		m_rtt_data_type;
 	GLRTT		m_rtt;
 	GLProgram	m_program;
 	float*		vertices;
@@ -494,7 +510,7 @@ public:
 	bool setTexSub2D(const char *tex_name, GLTex2d tex, int num, GLenum texture_num, T *value) {
 		glActiveTexture(texture_num);
 		glBindTexture(GL_TEXTURE_2D, tex.tex_id);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex.m_w, tex.m_h, tex.type, tex.format, value);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex.m_w, tex.m_h, tex.format, tex.type, value);
 
 		int texLocation = glGetUniformLocation(m_program.GetProgramID(), tex_name);
 		glUniform1i(texLocation, num);
