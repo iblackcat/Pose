@@ -6,6 +6,7 @@
 #include "pose_estimation3d2d.h"
 #include "image_rectification.h"
 #include "stereo_matching.h"
+#include "tsdf_model.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -42,9 +43,16 @@ int main() {
 	char path1[1024], path2[1024];
 	u32 *i1, *i2;
 
+
+	TSDFModel tsdfmodel;
+	float model_size = 4.0;
+	printf("please input model size: ");
+	scanf("%f", &model_size);
+	tsdfmodel.init(model_size);
+
 	fscanf(fin, " %s", path1);
 	i1 = (u32*)DH.readImage(path1);
-	for (int index = 1; index < n; ++index) {
+	for (int index = 1; index < 2; ++index) {
 		fscanf(fin, "%s", path2);
 		i2 = (u32*)DH.readImage(path2);
 
@@ -70,32 +78,32 @@ int main() {
 		DH.writeImage(i1_rec, "out1.png");
 		DH.writeImage(i2_rec, "out2.png");
 
-		//float *delta1, *delta2;
 		StereoMatching stereomatch;
 		cout << "init ok? " << stereomatch.init(StereoMatching::STEREOMATCH_ZNCC) << endl;
-		//stereomatch.disparity_estimation(i1_rec, i2_rec, &delta1, &delta2);
-		//u8 *depth = stereomatch.lrcheck_and_depth(delta1, delta2, 1.6, 1);
 		u8 *depth = stereomatch.stereo_matching(i1_rec, p1_rec, i2_rec, p2_rec);
 		DH.writeImage(depth, "depth.png", 1);
+
+		tsdfmodel.model_updating(i1_rec, depth, p1_rec);
+
+		u32 *ii;
+		tsdfmodel.ray_tracing(p1_rec, &ii, nullptr, nullptr);
+		DH.writeImage(ii, "ii.png");
+		free(ii); ii = nullptr;
+
 		/*
-		for (int i = 0; i < G.h; ++i) {
-			for (int j = 0; j < G.w; ++j) {
-				depth[i*G.w + j] = (u8)delta1[i*G.w + j];
+		int times = 0;
+		for (int i = 0; i < TSDFModel::ModelTexSize; ++i) {
+			for (int j = 0; j < TSDFModel::ModelTexSize; ++j) {
+				if (times == 100) break;
+				if (tsdfmodel.modelC(i, j) != 0) {
+					printf("%x\n", tsdfmodel.modelC(i, j));
+					++times;
+				}
 			}
 		}
-		DH.writeImage(depth, "delta1.png", 1);
-
-		for (int i = 0; i < G.h; ++i) {
-			for (int j = 0; j < G.w; ++j) {
-				depth[i*G.w + j] = (u8)delta2[i*G.w + j];
-			}
-		}
-		DH.writeImage(depth, "delta2.png", 1);
-
-		free(delta1); delta1 = nullptr;
-		free(delta2); delta2 = nullptr;
-		free(depth); depth = nullptr;
 		*/
+		imagerectify.destroy();
+		stereomatch.destroy();
 
 		free(i1_rec); i1_rec = nullptr;
 		free(i2_rec); i2_rec = nullptr;
@@ -103,62 +111,8 @@ int main() {
 		strcpy(path1, path2);
 		free(i1); i1 = i2;  i2 = nullptr;
 	}
+	DH.writeModel(tsdfmodel.get_modelC(), tsdfmodel.get_modelSW(), 10);
+	tsdfmodel.destroy();
 
-	/*
-	char path1[1024], path2[1024], path3[1024];
-	fscanf(fin, " %s %s %s", path1, path2, path3);
-	
-	
-	u32 *i1 = (u32*)DH.readImage(path1);
-	u32 *i2 = (u32*)DH.readImage(path2);
-
-	//ignore_blank_pixel(i1);
-	//ignore_blank_pixel(i2);
-
-
-	cout << "p2 " << endl << p2.R << endl << p2.t.transpose() << endl;
-	 
-	
-
-
-	DH.writeImage(i1_rec, "out1.png");
-	DH.writeImage(i2_rec, "out2.png");
-	
-	
-	float *delta1, *delta2;
-	StereoMatching stereomatch;
-	cout << "init ok? " << stereomatch.init(StereoMatching::STEREOMATCH_ZNCC) << endl;
-	stereomatch.disparity_estimation(i1_rec, i2_rec, &delta1, &delta2);
-	u8 *depth = stereomatch.lrcheck_and_depth(delta1, delta2, 1.6, 1);
-	
-	printf("depth:\n");
-	int index = 0;
-	for (int i = 0; i < G.h; ++i) {
-		if (index == 100) break;
-		for (int j = 0; j < G.w; ++j) {
-			if (index == 100) break;
-			if (depth[i*G.w + j] > 0 && depth[i*G.w + j] != 229 && depth[i*G.w + j] != 204) {
-				printf("%d\n", depth[i*G.w + j]);
-				index++;
-			}
-		}
-	}
-
-	DH.writeImage(depth, "depth.png", 1);
-
-	for (int i = 0; i < G.h; ++i) {
-		for (int j = 0; j < G.w; ++j) {
-			depth[i*G.w + j] = (u8)delta1[i*G.w + j];
-		}
-	}
-	DH.writeImage(depth, "delta1.png", 1);
-
-	for (int i = 0; i < G.h; ++i) {
-		for (int j = 0; j < G.w; ++j) {
-			depth[i*G.w + j] = (u8)delta2[i*G.w + j];
-		}
-	}
-	DH.writeImage(depth, "delta2.png", 1);
-	*/
 	return 0;
 }

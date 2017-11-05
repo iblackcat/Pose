@@ -39,6 +39,9 @@
     <ClInclude Include="src\stereo_matching.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\tsdf_model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dataset_helper.cpp">
@@ -63,6 +66,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\stereo_matching.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tsdf_model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

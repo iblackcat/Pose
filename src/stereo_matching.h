@@ -21,6 +21,8 @@ public:
 	void disparity_estimation(const u32 const *image1, const u32 const *image2, float **delta1, float **delta2, const int& radius = 2);
 	u8* lrcheck_and_depth(const float const *delta1, const float const *delta2, float baseline, int max_diff = 15);
 
+	bool destroy();
+
 private:
 	jhw_gl::MyGLRenderer	m_gl_matching;
 	jhw_gl::GLTex2d			m_gl_matching_tex1;

@@ -48,6 +48,13 @@ bool StereoMatching::init(int method) {
 	return true;
 }
 
+bool StereoMatching::destroy() {
+	m_gl_matching.destroy();
+	m_gl_triangulation.destroy();
+
+	return true;
+}
+
 void StereoMatching::disparity_estimation(const u32 const *image1, const u32 const *image2, float **delta1, float **delta2, const int& radius) {
 	float *d1 = nullptr, *d2 = nullptr;
 

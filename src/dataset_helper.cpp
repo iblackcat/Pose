@@ -64,9 +64,9 @@ bool DatasetHelper::writeModel(u32 *C, u32 *SW, int index) {
 		return false;
 	}
 	char name_tmp[256];
-	sprintf(name_tmp, "E:/code/c/MobileFusion/small_resolution/QtGuiApplication/res/modelC%d.png", index);
+	sprintf(name_tmp, "../QtGuiApplication/res/modelC%d.png", index);
 	stbi_write_png(name_tmp, 4096, 4096, 4, C, sizeof(u32) * 4096);
-	sprintf(name_tmp, "E:/code/c/MobileFusion/small_resolution/QtGuiApplication/res/modelSW%d.png", index);
+	sprintf(name_tmp, "../QtGuiApplication/res/modelSW%d.png", index);
 	stbi_write_png(name_tmp, 4096, 4096, 4, SW, sizeof(u32) * 4096);
 	return true;
 }

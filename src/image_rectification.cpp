@@ -15,6 +15,12 @@ bool ImageRectification::init() {
 	return true;
 } 
 
+bool ImageRectification::destroy() {
+	m_gl_rectify.destroy();
+
+	return true;
+}
+
 bool ImageRectification::get_rectified_pose(const CameraPose &p1, const CameraPose &p2, CameraPose &p1_rec, CameraPose &p2_rec) {
 	if (p1.center == p2.center) {
 		p1_rec = p1;
