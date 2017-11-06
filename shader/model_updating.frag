@@ -34,14 +34,14 @@ void main()
 	float dx = 1.0 / m_w;
 	float dy = 1.0 / m_h;
 
-	vec4 wP = vec4(WorldCoord(j, ModelSize - i - 1.0, k), 1.0);
+	vec4 wP = vec4(WorldCoord(j, i, k), 1.0);
 	//vec4 cP = Rot * wP; // ?!
 	vec4 vP = Q   * wP;
 	float x = (vP.x / vP.z + 0.5) * dx;
-	float y = (m_h - vP.y / vP.z - 1.0 + 0.5) * dy;
+	float y = (vP.y / vP.z + 0.5) * dy;
 
 	float ix = (floor(vP.x / vP.z) + 0.5) * dx;
-	float iy = (floor(m_h - vP.y / vP.z - 1.0) + 0.5) * dy;
+	float iy = (floor(vP.y / vP.z) + 0.5) * dy;
 	float ix_ = ix + dx;//(floor(vP.x / vP.z) + 1.5) * dx;
 	float iy_ = iy + dy;//(floor(m_h - vP.y / vP.z - 1.0) + 1.5) * dy;
 	vec4 d1 = texture2D(tex_depth, vec2(ix, iy));
@@ -56,22 +56,29 @@ void main()
 	
 	if (x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0) FragColor = texture2D(model, st);//vec4(0.6, 0.5, 0.0, 1.0);//
 	else if (d1.a < 1.0/255.0 || d2.a < 1.0/255.0 || d3.a < 1.0/255.0 || d4.a < 1.0/255.0) //todo: 1e-6?
-		FragColor = texture2D(model, st); //vec4(0.0, 1.0, 0.0, 1.0); //
+		FragColor = vec4(0.0, 1.0, 0.0, 1.0); //texture2D(model, st); //
 	else {
 		vec4 D = texture2D(tex_depth, vec2(x, y));
 		//float di = float((double(D.r)*255.0 *256.0*256.0 + double(D.g)*255.0 *256.0 + double(D.b)*255.0) / (256*256));
 		//di = D.r*8.0;
-		float di = D.r;
+
+		float di = D.r*255;
+		if (D.r*255 > 80) {
+			FragColor = texture2D(model, st);
+			return;
+		}
 		
 		float si = (di - vP.z) * ModelSize / size;
 		vec4 ci = texture2D(tex_image, vec2(x, y));
-		float wi = 1.0;
+		float wi = 5.0;
 
 		//di = D.r*8.0;
 		//si = (di - 10.0);
 		//if (0 == 1) {ci = vec4(0.0, 0.0, 0.0, 0.0); di = 0.0;}
 
 		if (si <= -Mu || si > Mu) FragColor = texture2D(model, st);
+		//if (si <= -Mu) FragColor = vec4(0.0, 0.5, 0.5, 1.0);
+		//else if (si > Mu) FragColor = vec4(0.0, 0.9, 0.9, 1.0);
 		else {
 			// R G B W
 			if (isC_flag == 1) {
@@ -84,7 +91,7 @@ void main()
 					C.b = (C.b * W + ci.b * wi) / (W + wi);
 					C.a = (W + wi) / 255;
 				}
-				FragColor = vec4(C.xyz, 1.0); //C;
+				FragColor = vec4(C.xyz, C.w); //C;
 			}
 			// S x W F
 			else {

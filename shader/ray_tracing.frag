@@ -66,12 +66,12 @@ void main()
 		else if (Axis / 2 == 1) {y = WorldAxis(float(k)); test = y;}
 		else {z = WorldAxis(float(k)); test = z;}
 
-		zm = (test + vec3Multi(invQ[Axis/2], q)) / vec3Multi(invQ[Axis/2], vec3(j, m_h - i - 1.0, 1.0));
+		zm = (test + vec3Multi(invQ[Axis/2], q)) / vec3Multi(invQ[Axis/2], vec3(j, i, 1.0));
 		xm = j * zm;
-		ym = (m_h - i - 1.0) * zm;
+		ym = i  * zm;
 
 		x = vec3Multi(invQ[0], vec3(xm, ym, zm)) - vec3Multi(invQ[0], q); x = LocalAxis(x);
-		y = vec3Multi(invQ[1], vec3(xm, ym, zm)) - vec3Multi(invQ[1], q); y = ModelSize - LocalAxis(y) - 1.0;
+		y = vec3Multi(invQ[1], vec3(xm, ym, zm)) - vec3Multi(invQ[1], q); y = LocalAxis(y);
 		z = vec3Multi(invQ[2], vec3(xm, ym, zm)) - vec3Multi(invQ[2], q); z = LocalAxis(z);
 		
 		float s_tmp = ModelSize;
@@ -91,7 +91,7 @@ void main()
 			s_tmp = SW.r*255.0 - 128.0;
 			weight = SW.b*255.0;
 
-			//vec4 p = Rot * vec4(WorldCoord(x,ModelSize-y-1.0,z), 1.0);
+			//vec4 p = Rot * vec4(WorldCoord(x,y,z), 1.0);
 			last_depth = depth;
 			//depth = p.z;
 			depth = zm;
@@ -128,7 +128,7 @@ void main()
 				FragColor = vec4(R, G, B, A);
 			}
 			weight_tmp = weight;
-			return ;
+			//return ;
 		} /*else if (tmp < 0.0 && s_tmp >= 0.0 && s_tmp < Mu) {
 			return ;
 		}*/

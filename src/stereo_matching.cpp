@@ -98,16 +98,30 @@ u8* StereoMatching::lrcheck_and_depth(const float const *delta1, const float con
 	return depth;
 }
 
+u8* StereoMatching::stereo_matching(const u32 *image1, const u32 *image2, float baseline, int max_diff, int radius) {
+	float *delta1 = nullptr, *delta2 = nullptr;
+	u8 *depth = nullptr;
+
+	disparity_estimation(image1, image2, &delta1, &delta2, radius);
+	depth = lrcheck_and_depth(delta1, delta2, baseline, max_diff);
+
+	if (delta1) { free(delta1); delta1 = nullptr; }
+	if (delta2) { free(delta2); delta2 = nullptr; }
+	return depth;
+}
 
 u8* StereoMatching::stereo_matching(const u32 *image1, const CameraPose &p1, const u32 *image2, const CameraPose &p2, int max_diff, int radius) {
 	float *delta1 = nullptr, *delta2 = nullptr;
 	u8 *depth = nullptr;
 
 	float baseline = static_cast<float>((p1.center - p2.center).norm());
+	std::cout << "baseline: " << baseline << std::endl;
 
 	disparity_estimation(image1, image2, &delta1, &delta2, radius);
 	depth = lrcheck_and_depth(delta1, delta2, baseline, max_diff);
 
+	if (delta1) { free(delta1); delta1 = nullptr; }
+	if (delta2) { free(delta2); delta2 = nullptr; }
 	return depth;
 }
 
