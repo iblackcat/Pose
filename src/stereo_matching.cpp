@@ -24,6 +24,15 @@ bool StereoMatching::init(int method) {
 		break;
 	
 	}
+
+	if (!m_gl_matchingu8.init(G.w, G.h, GL_R8, GL_RED, GL_UNSIGNED_BYTE))
+		return false;
+	if (!m_gl_matchingu8.setShaderFile("shader/default.vert", method_file_name))
+		return false;
+	m_gl_matchingu8.CreateVertexBuffer();
+	m_gl_matchingu8_tex1 = m_gl_matchingu8.CreateTexture(&m_gl_matchingu8_tex1.tex_id, G.w, G.h);
+	m_gl_matchingu8_tex2 = m_gl_matchingu8.CreateTexture(&m_gl_matchingu8_tex2.tex_id, G.w, G.h);
+
 	
 	//disparity estimation renderer
 	//input: u32, u32; output: float
@@ -46,6 +55,31 @@ bool StereoMatching::init(int method) {
 	m_gl_triangulation_tex2 = m_gl_triangulation.CreateTexture(&m_gl_triangulation_tex2.tex_id, G.w, G.h, GL_R32F, GL_RED, GL_FLOAT);
 
 	return true;
+}
+
+void StereoMatching::disparity_estimationu8(const u32 const *image1, const u32 const *image2, u8 **delta1, u8 **delta2, const int& radius) {
+	u8 *d1 = nullptr, *d2 = nullptr;
+
+	m_gl_matchingu8.useRenderer();
+
+	m_gl_matchingu8.setUniform1("m_w", G.w);
+	m_gl_matchingu8.setUniform1("m_h", G.h);
+	m_gl_matchingu8.setUniform1("step", static_cast<int>(1));
+	m_gl_matchingu8.setUniform1("radius", static_cast<int>(radius));
+	m_gl_matchingu8.setTexSub2D("tex", m_gl_matchingu8_tex1, 0, GL_TEXTURE0, image1);
+	m_gl_matchingu8.setTexSub2D("tex2", m_gl_matchingu8_tex2, 1, GL_TEXTURE1, image2);
+	d1 = m_gl_matchingu8.RenderScence<u8>();
+
+	m_gl_matchingu8.setUniform1("m_w", G.w);
+	m_gl_matchingu8.setUniform1("m_h", G.h);
+	m_gl_matchingu8.setUniform1("step", static_cast<int>(-1));
+	m_gl_matchingu8.setUniform1("radius", static_cast<int>(radius));
+	m_gl_matchingu8.setTexSub2D("tex", m_gl_matchingu8_tex1, 0, GL_TEXTURE0, image2);
+	m_gl_matchingu8.setTexSub2D("tex2", m_gl_matchingu8_tex2, 1, GL_TEXTURE1, image1);
+	d2 = m_gl_matchingu8.RenderScence<u8>();
+
+	*delta1 = d1;
+	*delta2 = d2;
 }
 
 bool StereoMatching::destroy() {

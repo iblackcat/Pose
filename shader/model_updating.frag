@@ -62,7 +62,7 @@ void main()
 		//float di = float((double(D.r)*255.0 *256.0*256.0 + double(D.g)*255.0 *256.0 + double(D.b)*255.0) / (256*256));
 		//di = D.r*8.0;
 
-		float di = D.r*255;
+		float di = D.r*80/3;
 		if (D.r*255 > 80) {
 			FragColor = texture2D(model, st);
 			return;
@@ -77,8 +77,8 @@ void main()
 		//if (0 == 1) {ci = vec4(0.0, 0.0, 0.0, 0.0); di = 0.0;}
 
 		if (si <= -Mu || si > Mu) FragColor = texture2D(model, st);
-		//if (si <= -Mu) FragColor = vec4(0.0, 0.5, 0.5, 1.0);
-		//else if (si > Mu) FragColor = vec4(0.0, 0.9, 0.9, 1.0);
+		if (si <= -Mu) FragColor = vec4(0.0, 0.5, 0.5, 1.0);
+		else if (si > Mu) FragColor = vec4(0.0, 0.9, 0.9, 1.0);
 		else {
 			// R G B W
 			if (isC_flag == 1) {
@@ -91,7 +91,7 @@ void main()
 					C.b = (C.b * W + ci.b * wi) / (W + wi);
 					C.a = (W + wi) / 255;
 				}
-				FragColor = vec4(C.xyz, C.w); //C;
+				FragColor = vec4(C.xyz, 1.0); //C;
 			}
 			// S x W F
 			else {

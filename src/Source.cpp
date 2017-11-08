@@ -20,9 +20,9 @@ using namespace mf;
 using namespace std;
 
 //mf::GlobalCoeff mf::G(320, 240, 500.0, 500.0, 150.0, 100.0, 3.0);
-//mf::GlobalCoeff mf::G(640, 480, 700.0, 700.0, 313.0, 256.0, 3.67);
+mf::GlobalCoeff mf::G(640, 480, 700.0, 700.0, 313.0, 256.0, 3.67);
 //mf::GlobalCoeff mf::G(1067, 800, 752.82, 564.44, 533.5, 400, 5);
-mf::GlobalCoeff mf::G(450, 375, 500.0, 500.0, 225.0, 175.0, 3.0);
+//mf::GlobalCoeff mf::G(450, 375, 500.0, 500.0, 225.0, 175.0, 3.0);
 
 void ignore_blank_pixel(u32 *image) {
 	for (int i = 0; i < G.h; ++i) {
@@ -38,7 +38,7 @@ int main() {
 	jhw_gl::GLInit(G.w, G.h);
 	DatasetHelper DH;
 
-
+	/*
 	u32 *img1 = (u32*)DH.readImage("E:/projects/mobilefusion/datasets/stereomatch/cones-png-2/cones/im2.png");
 	u32 *img2 = (u32*)DH.readImage("E:/projects/mobilefusion/datasets/stereomatch/cones-png-2/cones/im6.png");
 
@@ -48,20 +48,20 @@ int main() {
 	u8 *delta1 = nullptr, *delta2 = nullptr;
 	u8 *dd = nullptr;
 
-	sm.disparity_estimation(img1, img2, &delta1, &delta2, 2);
-	DH.writeImage(dd, "E:/projects/mobilefusion/datasets/stereomatch/cones-png-2/cones/delta1.png", 1);
-	DH.writeImage(dd, "E:/projects/mobilefusion/datasets/stereomatch/cones-png-2/cones/delta2.png", 1);
+	sm.disparity_estimationu8(img1, img2, &delta1, &delta2, 2);
+	DH.writeImage(delta1, "E:/projects/mobilefusion/datasets/stereomatch/cones-png-2/cones/delta1.png", 1);
+	DH.writeImage(delta2, "E:/projects/mobilefusion/datasets/stereomatch/cones-png-2/cones/delta2.png", 1);
 
 	//dd = sm.lrcheck_and_depth(delta1, delta2, 1, 2);
 	//dd = sm.stereo_matching(img1, img2, 1.f);
-	DH.writeImage(dd, "E:/projects/mobilefusion/datasets/stereomatch/cones-png-2/cones/depth2.png", 1);
+	//DH.writeImage(dd, "E:/projects/mobilefusion/datasets/stereomatch/cones-png-2/cones/depth2.png", 1);
 
 	return 0;
 
+	*/
 
 
-
-	FILE *fin = fopen("res/test2.txt", "r");
+	FILE *fin = fopen("res/test3.txt", "r");
 	int n = 0;
 	fscanf(fin, "%d", &n);
 
@@ -77,12 +77,11 @@ int main() {
 
 	fscanf(fin, " %s", path1);
 	i1 = (u32*)DH.readImage(path1);
-	CameraPose p1(G.Intrinsic, Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 10));
+	CameraPose p1(G.Intrinsic, Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 5));
 	CameraPose p0 = p1;
 	for (int index = 1; index < 50; ++index) {
 		fscanf(fin, "%s", path2);
-		if (index != 20) continue;
-
+		if (index != 3) continue;
 		i2 = (u32*)DH.readImage(path2);
 
 		//2d2d

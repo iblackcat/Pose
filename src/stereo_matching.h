@@ -21,7 +21,7 @@ public:
 	u8* stereo_matching(const u32 *image1, const u32 *image2, float baseline, int max_diff = 15, int radius = 2);
 	
 	void disparity_estimation(const u32 const *image1, const u32 const *image2, float **delta1, float **delta2, const int& radius = 2);
-	void disparity_estimation(const u32 const *image1, const u32 const *image2, u8 **delta1, u8 **delta2, const int& radius = 2);
+	void disparity_estimationu8(const u32 const *image1, const u32 const *image2, u8 **delta1, u8 **delta2, const int& radius = 2);
 	u8* lrcheck_and_depth(const float const *delta1, const float const *delta2, float baseline, int max_diff = 15);
 
 	bool destroy();
