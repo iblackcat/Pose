@@ -62,8 +62,8 @@ void main()
 		//float di = float((double(D.r)*255.0 *256.0*256.0 + double(D.g)*255.0 *256.0 + double(D.b)*255.0) / (256*256));
 		//di = D.r*8.0;
 
-		float di = D.r*80/3;
-		if (D.r*255 > 80) {
+		float di = D.r;
+		if (D.r > 80) {
 			FragColor = texture2D(model, st);
 			return;
 		}

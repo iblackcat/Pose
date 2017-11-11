@@ -46,7 +46,7 @@ Frame DatasetHelper::readFrame(int index, int channels) {
 }
 */
 
-bool DatasetHelper::writeImage(void *i, const char * file_name, int channels) {
+bool DatasetHelper::writeImage(const void const *i, const char * file_name, int channels) {
 	if (!i) {
 		return false;
 	}

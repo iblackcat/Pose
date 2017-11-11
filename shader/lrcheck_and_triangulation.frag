@@ -46,6 +46,6 @@ void main()
 		//float R = float(test / 256 / 256) / 255.0;
 		
 		//FragColor = vec4(R, G, B, A);
-		FragColor = float(depth*3/255.0);
+		FragColor = float(depth);
 	}
 }  

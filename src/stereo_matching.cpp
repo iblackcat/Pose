@@ -46,7 +46,7 @@ bool StereoMatching::init(int method) {
 
 	//LR-check and depth renderer
 	//input: float, float; output: u8
-	if (!m_gl_triangulation.init(G.w, G.h, GL_R8, GL_RED, GL_UNSIGNED_BYTE))
+	if (!m_gl_triangulation.init(G.w, G.h, GL_R32F, GL_RED, GL_FLOAT))
 		return false;
 	if (!m_gl_triangulation.setShaderFile("shader/default.vert", "shader/lrcheck_and_triangulation.frag"))
 		return false;
@@ -115,8 +115,8 @@ void StereoMatching::disparity_estimation(const u32 const *image1, const u32 con
 }
 
 
-u8* StereoMatching::lrcheck_and_depth(const float const *delta1, const float const *delta2, float baseline, int max_diff) {
-	u8 *depth = nullptr;
+float* StereoMatching::lrcheck_and_depth(const float const *delta1, const float const *delta2, float baseline, int max_diff) {
+	float *depth = nullptr;
 
 	m_gl_triangulation.useRenderer();
 
@@ -128,13 +128,13 @@ u8* StereoMatching::lrcheck_and_depth(const float const *delta1, const float con
 	m_gl_triangulation.setTexSub2D("tex", m_gl_triangulation_tex1, 0, GL_TEXTURE0, delta1);
 	m_gl_triangulation.setTexSub2D("tex2", m_gl_triangulation_tex2, 1, GL_TEXTURE1, delta2);
 
-	depth = m_gl_triangulation.RenderScence<u8>();
+	depth = m_gl_triangulation.RenderScence<float>();
 	return depth;
 }
 
-u8* StereoMatching::stereo_matching(const u32 *image1, const u32 *image2, float baseline, int max_diff, int radius) {
+float* StereoMatching::stereo_matching(const u32 *image1, const u32 *image2, float baseline, int max_diff, int radius) {
 	float *delta1 = nullptr, *delta2 = nullptr;
-	u8 *depth = nullptr;
+	float *depth = nullptr;
 
 	disparity_estimation(image1, image2, &delta1, &delta2, radius);
 	depth = lrcheck_and_depth(delta1, delta2, baseline, max_diff);
@@ -144,9 +144,9 @@ u8* StereoMatching::stereo_matching(const u32 *image1, const u32 *image2, float 
 	return depth;
 }
 
-u8* StereoMatching::stereo_matching(const u32 *image1, const CameraPose &p1, const u32 *image2, const CameraPose &p2, int max_diff, int radius) {
+float* StereoMatching::stereo_matching(const u32 *image1, const CameraPose &p1, const u32 *image2, const CameraPose &p2, int max_diff, int radius) {
 	float *delta1 = nullptr, *delta2 = nullptr;
-	u8 *depth = nullptr;
+	float *depth = nullptr;
 
 	float baseline = static_cast<float>((p1.center - p2.center).norm());
 	std::cout << "baseline: " << baseline << std::endl;

@@ -138,8 +138,8 @@ CameraPose PoseEstimation3d2d::pose_estimation3d2d(u32 *image1, const char *path
 	cout << "R:" << endl << R << endl;
 	cout << "t:" << endl << t << endl;
 
-	//R = (Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);
-	//t = Mat_<double>(3, 1);
+	R = (Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);
+	t = Mat_<double>(3, 1);
 	bundleAjustment(pts_3d, pts_2d, K, R, t);
 
 	Eigen::Matrix3d poseK, poseR;

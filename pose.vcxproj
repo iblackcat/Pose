@@ -160,6 +160,7 @@
     <ClInclude Include="src\pose_estimation.h" />
     <ClInclude Include="src\pose_estimation2d2d.h" />
     <ClInclude Include="src\pose_estimation3d2d.h" />
+    <ClInclude Include="src\pose_estimation_dense.h" />
     <ClInclude Include="src\stereo_matching.h" />
     <ClInclude Include="src\tsdf_model.h" />
     <ClInclude Include="src\utils.h" />
@@ -171,6 +172,7 @@
     <ClCompile Include="src\pose_estimation.cpp" />
     <ClCompile Include="src\pose_estimation2d2d.cpp" />
     <ClCompile Include="src\pose_estimation3d2d.cpp" />
+    <ClCompile Include="src\pose_estimation_dense.cpp" />
     <ClCompile Include="src\Source.cpp" />
     <ClCompile Include="src\stereo_matching.cpp" />
     <ClCompile Include="src\tsdf_model.cpp" />

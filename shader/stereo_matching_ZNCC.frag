@@ -159,6 +159,9 @@ void main()
 				delta = -b / (2.0 * a);
 			}
 		}
+		else {
+			delta = 100;
+		}
 		
 		if (delta == 0.0) FragColor = 0.0; //vec4(0.0, 0.0, 0.0, 0.0);
 		else {

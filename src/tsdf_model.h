@@ -12,8 +12,8 @@ public:
 	~TSDFModel();
 
 	bool init(float size = 4.0);
-	bool model_updating(u32* image, u8* depth, CameraPose pose);
-	bool ray_tracing(const CameraPose &pose, u32 **image, u8 **depth, u8 **weight);
+	bool model_updating(u32* image, float* depth, CameraPose pose);
+	bool ray_tracing(const CameraPose &pose, u32 **image, float **depth, u8 **weight);
 
 	bool destroy();
 
@@ -41,8 +41,13 @@ private:
 	jhw_gl::GLTex2d			m_gl_raytracing_texmodelC;
 	jhw_gl::GLTex2d			m_gl_raytracing_texmodelSW;
 
-	jhw_gl::MyGLRenderer	m_gl_raytracing_single;
-	jhw_gl::GLTex2d			m_gl_raytracing_single_texmodel;
+	jhw_gl::MyGLRenderer	m_gl_raytracing_depth;
+	jhw_gl::GLTex2d			m_gl_raytracing_depth_texmodelC;
+	jhw_gl::GLTex2d			m_gl_raytracing_depth_texmodelSW;
+
+	jhw_gl::MyGLRenderer	m_gl_raytracing_weight;
+	jhw_gl::GLTex2d			m_gl_raytracing_weight_texmodelC;
+	jhw_gl::GLTex2d			m_gl_raytracing_weight_texmodelSW;
 };
 
 } //namespace mf

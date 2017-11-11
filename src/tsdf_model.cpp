@@ -20,7 +20,7 @@ bool TSDFModel::init(float size) {
 		return false;
 	m_gl_updating.CreateVertexBuffer();
 	m_gl_updating_teximage = m_gl_updating.CreateTexture(&m_gl_updating_teximage.tex_id, G.w, G.h);
-	m_gl_updating_texdepth = m_gl_updating.CreateTexture(&m_gl_updating_texdepth.tex_id, G.w, G.h, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+	m_gl_updating_texdepth = m_gl_updating.CreateTexture(&m_gl_updating_texdepth.tex_id, G.w, G.h, GL_R32F, GL_RED, GL_FLOAT);
 	m_gl_updating_texmodel = m_gl_updating.CreateTexture(&m_gl_updating_texmodel.tex_id, ModelTexSize, ModelTexSize);
 
 	
@@ -33,15 +33,26 @@ bool TSDFModel::init(float size) {
 	m_gl_raytracing_texmodelC = m_gl_raytracing.CreateTexture(&m_gl_raytracing_texmodelC.tex_id, ModelTexSize, ModelTexSize);
 	m_gl_raytracing_texmodelSW = m_gl_raytracing.CreateTexture(&m_gl_raytracing_texmodelSW.tex_id, ModelTexSize, ModelTexSize);
 	
-	/*
-	//ray tracing (single) renderer
-	if (!m_gl_raytracing_single.init(G.w, G.h, GL_R8, GL_RED, GL_UNSIGNED_BYTE))
+	
+	//ray tracing (depth) renderer
+	if (!m_gl_raytracing_depth.init(G.w, G.h, GL_R32F, GL_RED, GL_FLOAT))
 		return false;
-	if (!m_gl_raytracing_single.setShaderFile("shader/default.vert", "shader/ray_tracing_single.frag"))
+	if (!m_gl_raytracing_depth.setShaderFile("shader/default.vert", "shader/ray_tracing_depth.frag"))
 		return false;
-	m_gl_raytracing_single.CreateVertexBuffer();
-	m_gl_raytracing_single_texmodel = m_gl_raytracing_single.CreateTexture(&m_gl_raytracing_single_texmodel.tex_id, ModelTexSize, ModelTexSize);
-	*/
+	m_gl_raytracing_depth.CreateVertexBuffer();
+	m_gl_raytracing_depth_texmodelC = m_gl_raytracing_depth.CreateTexture(&m_gl_raytracing_depth_texmodelC.tex_id, ModelTexSize, ModelTexSize);
+	m_gl_raytracing_depth_texmodelSW = m_gl_raytracing_depth.CreateTexture(&m_gl_raytracing_depth_texmodelSW.tex_id, ModelTexSize, ModelTexSize);
+	
+
+	//ray tracing (weight) renderer
+	if (!m_gl_raytracing_weight.init(G.w, G.h, GL_RED, GL_RED, GL_UNSIGNED_BYTE))
+		return false;
+	if (!m_gl_raytracing_weight.setShaderFile("shader/default.vert", "shader/ray_tracing_weight.frag"))
+		return false;
+	m_gl_raytracing_weight.CreateVertexBuffer();
+	m_gl_raytracing_weight_texmodelC = m_gl_raytracing_weight.CreateTexture(&m_gl_raytracing_weight_texmodelC.tex_id, ModelTexSize, ModelTexSize);
+	m_gl_raytracing_weight_texmodelSW = m_gl_raytracing_weight.CreateTexture(&m_gl_raytracing_weight_texmodelSW.tex_id, ModelTexSize, ModelTexSize);
+
 
 	//initiate model
 	if (m_modelC) {
@@ -76,12 +87,13 @@ bool TSDFModel::init(float size) {
 bool TSDFModel::destroy() {
 	m_gl_updating.destroy();
 	m_gl_raytracing.destroy();
-	m_gl_raytracing_single.destroy();
+	m_gl_raytracing_depth.destroy();
+	m_gl_raytracing_weight.destroy();
 
 	return true;
 }
 
-bool TSDFModel::model_updating(u32* image, u8* depth, CameraPose pose) {
+bool TSDFModel::model_updating(u32* image, float* depth, CameraPose pose) {
 	if (!image || !depth) return false;
 	if (!m_modelC || !m_modelSW) return false;
 
@@ -130,8 +142,11 @@ bool TSDFModel::model_updating(u32* image, u8* depth, CameraPose pose) {
 	return true;
 }
 
-bool TSDFModel::ray_tracing(const CameraPose &pose, u32 **image, u8 **depth, u8 **weight) {
-	u32 *I = nullptr, *D = nullptr, *W = nullptr;
+bool TSDFModel::ray_tracing(const CameraPose &pose, u32 **image, float **depth, u8 **weight) {
+	u32		*I = nullptr;
+	float	*D = nullptr;
+	u8		*W = nullptr;
+
 	double tmp = 0.0;
 	int axis_tmp = 0;
 	for (int i = 0; i < 6; ++i) {
@@ -166,6 +181,39 @@ bool TSDFModel::ray_tracing(const CameraPose &pose, u32 **image, u8 **depth, u8 
 	I = m_gl_raytracing.RenderScence<u32>();
 	*image = I;
 
+	m_gl_raytracing_depth.useRenderer();
+	m_gl_raytracing_depth.setUniform1("m_w", G.w);
+	m_gl_raytracing_depth.setUniform1("m_h", G.h);
+	m_gl_raytracing_depth.setUniform1("ModelSize", static_cast<int>(ModelSize));
+	m_gl_raytracing_depth.setUniform1("tex_size", static_cast<int>(ModelTexSize));
+	m_gl_raytracing_depth.setUniform1("size", m_size);
+	m_gl_raytracing_depth.setUniform1("flag", 2);
+	m_gl_raytracing_depth.setUniform1("Mu", static_cast<int>(Mu));
+	m_gl_raytracing_depth.setUniform1("Axis", axis_tmp);
+	m_gl_raytracing_depth.setUniform3v("invQ", iQ);
+	m_gl_raytracing_depth.setUniform3("q", static_cast<float>(pose.q[0]), static_cast<float>(pose.q[1]), static_cast<float>(pose.q[2]));
+	m_gl_raytracing_depth.setTexSub2D("modelC", m_gl_raytracing_depth_texmodelC, 0, GL_TEXTURE0, m_modelC);
+	m_gl_raytracing_depth.setTexSub2D("modelSW", m_gl_raytracing_depth_texmodelSW, 1, GL_TEXTURE1, m_modelSW);
+
+	D = m_gl_raytracing_depth.RenderScence<float>();
+	*depth = D;
+
+	m_gl_raytracing_weight.useRenderer();
+	m_gl_raytracing_weight.setUniform1("m_w", G.w);
+	m_gl_raytracing_weight.setUniform1("m_h", G.h);
+	m_gl_raytracing_weight.setUniform1("ModelSize", static_cast<int>(ModelSize));
+	m_gl_raytracing_weight.setUniform1("tex_size", static_cast<int>(ModelTexSize));
+	m_gl_raytracing_weight.setUniform1("size", m_size);
+	m_gl_raytracing_weight.setUniform1("Mu", static_cast<int>(Mu));
+	m_gl_raytracing_weight.setUniform1("Axis", axis_tmp);
+	m_gl_raytracing_weight.setUniform3v("invQ", iQ);
+	m_gl_raytracing_weight.setUniform3("q", static_cast<float>(pose.q[0]), static_cast<float>(pose.q[1]), static_cast<float>(pose.q[2]));
+	m_gl_raytracing_weight.setTexSub2D("modelC", m_gl_raytracing_weight_texmodelC, 0, GL_TEXTURE0, m_modelC);
+	m_gl_raytracing_weight.setTexSub2D("modelSW", m_gl_raytracing_weight_texmodelSW, 1, GL_TEXTURE1, m_modelSW);
+
+	W = m_gl_raytracing_weight.RenderScence<u8>();
+	std::cout << (int)W[0] << std::endl;
+	*weight = W;
 
 	return true;
 }

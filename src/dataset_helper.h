@@ -12,7 +12,7 @@ class DatasetHelper {
 public:
 	DatasetHelper() {}
 
-	bool writeImage(void *i, const char * file_name, int channels = 4);
+	bool writeImage(const void const *i, const char * file_name, int channels = 4);
 	bool writeModel(u32 *C, u32 *SW, int index);
 	//Frame readFrame(int index, int channels = 4);
 	void *readImage(const char *filepath, int channels = 4);

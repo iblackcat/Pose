@@ -21,8 +21,8 @@ void main()
 	vec4 C;
 	if (haha.x < 0.0 || haha.y < 0.0 || haha.x > 1.0 || haha.y > 1.0) 
 		C = vec4(0.0, 0.0, 0.0, 0.0);
-	else if (int(st.y*480) % 30 == 0) 
-		C = vec4(0.6, 0.6, 0.1, 1.0);
+	//else if (int(st.y*480) % 30 == 0) 
+	//	C = vec4(0.6, 0.6, 0.1, 1.0);
 	else {
 		C = texture2D(tex, vec2(haha.x, haha.y));
 	}
