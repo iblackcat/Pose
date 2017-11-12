@@ -4,6 +4,7 @@
 #include "dataset_helper.h"
 #include "pose_estimation2d2d.h"
 #include "pose_estimation3d2d.h"
+#include "pose_estimation_dense.h"
 #include "image_rectification.h"
 #include "stereo_matching.h"
 #include "tsdf_model.h"
@@ -73,7 +74,7 @@ int main() {
 
 
 
-	FILE *fin = fopen("res/test3.txt", "r");
+	FILE *fin = fopen("res/test3-1.txt", "r");
 	int n = 0;
 	fscanf(fin, "%d", &n);
 
@@ -108,12 +109,17 @@ int main() {
 		else {
 			tsdfmodel.ray_tracing(p1, &i1, &dd, &yy); 
 			visualizeIDY(i1, dd, yy);
-			free(dd); dd = nullptr;
+			//free(dd); dd = nullptr;
 			free(yy); yy = nullptr;
+
+			//PoseEstimationDense poseguess;
+			//p2 = poseguess.pose_estimation_dense(i1, dd, i2);
 
 			PoseEstimation3d2d poseguess;
 			p2 = poseguess.pose_estimation3d2d(i1, "res/o_d.png", i2);
-			CameraPose p1(p2.intrinsics, Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 0));
+
+			p2 = CameraPose(G.Intrinsic, p2.SE3_Rt * p1.SE3_Rt);
+			//CameraPose p1(p2.intrinsics, Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 0));
 		}
 
 		u32 *i1_rec = nullptr, *i2_rec = nullptr;

@@ -160,6 +160,8 @@ public:
 
 		return p;
 	}
+
+
 	/*
 	double3 getRotation(Matrix33d m) {
 		double3 tmp;

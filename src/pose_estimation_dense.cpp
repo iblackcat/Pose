@@ -10,6 +10,8 @@ using std::sqrt;
 
 namespace mf {
 
+const int g_M = 10000;
+
 PoseEstimationDense::PoseEstimationDense()
 {
 }
@@ -19,6 +21,7 @@ PoseEstimationDense::~PoseEstimationDense()
 {
 }
 
+std::vector<PointData> PoseEstimationDense::m_points(g_M);
 
 // Generic functor
 template<typename _Scalar, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
@@ -59,9 +62,10 @@ struct my_functor : Functor<double>
 	}
 };
 */
+
 struct lmdif_functor : Functor<double>
 {
-	lmdif_functor() : Functor<double>(6, 1000) { N = 6; M = 1000;}
+	lmdif_functor(u32 *i1, u32 *i2) : Functor<double>(6, g_M) { N = 6; M = g_M; image1 = i1; image2 = i2; }
 	int operator()(const VectorXd &x, VectorXd &fvec) const
 	{
 		//double tmp1, tmp2, tmp3;
@@ -69,17 +73,25 @@ struct lmdif_functor : Functor<double>
 
 		assert(x.size() == N);
 		assert(fvec.size() == M);
-		assert(PoseEstimationDense::m_points.size == M);
+		assert(PoseEstimationDense::m_points.size() == M);
 
 		CameraPose pose(G.Intrinsic, Vector6d(x));
 
 		for (int i = 0; i < M; ++i) {
-			Vector3d point = PoseEstimationDense::m_points[i].get_point3d();
-			point = pose.Q * point + pose.q;
-			point[0] /= point[2];
-			point[1] /= point[2];
+			Vector3d p1 = PoseEstimationDense::m_points[i].get_point3d();
+			Vector3d p2 = pose.Q * p1 + pose.q;
+			Vector2d m1 = PoseEstimationDense::m_points[i].get_point2d();
+			Vector2d m2 = Vector2d(p2[0] / p2[2], p2[1] / p2[2]);
 
-			fvec[i] = ;
+			if (m2[0] >= 0 && m2[0] < G.w && m2[1] >= 0 && m2[1] < G.h) {
+				fvec[i] = binterd(image1, m1[0], m1[1], G.w) - binterd(image2, m2[0], m2[1], G.w);
+				fvec[i] *= fvec[i];
+				cout << i << ": " << fvec[i] << endl;
+			}
+			else {
+				fvec[i] = 255;
+			}
+
 		}
 		/*
 		for (i = 0; i<15; i++)
@@ -96,30 +108,36 @@ struct lmdif_functor : Functor<double>
 	}
 private:
 	int N, M;
+	u32 *image1 = nullptr, *image2 = nullptr;
 };
 
 
 
-CameraPose PoseEstimationDense::pose_estimation3d2d(u32 *image1, float *depth1, u32 *image2) {
+CameraPose PoseEstimationDense::pose_estimation_dense(u32 *image1, float *depth1, u32 *image2) {
 	CameraPose pose = CameraPose::Identity();
 	VectorXd se3(6);
 
 	int index = 0;
-	for (int i = 0; i < G.h; ++i) {
-		if (index == 1000) break;
-		for (int j = 0; j < G.w; ++j) {
-			if (index == 1000) break;
+	for (int i = 10; i < G.h - 10; ++i) {
+		if (index == g_M) break;
+		for (int j = 10; j < G.w - 10; ++j) {
+			if (index == g_M) break;
 
-			if (image1[i*G.w + j] && depth1[i + G.w + j]) {
-
+			if (image1[i*G.w + j] && depth1[i*G.w + j]) {
+				PoseEstimationDense::m_points[index++] = PointData(j, i, depth1[i*G.w + j]);
+				//index++;
 			}
 		}
 	}
+	cout << "index = " << index << endl;
 
-	lmdif_functor functor;
+	lmdif_functor functor(image1, image2);
 	NumericalDiff<lmdif_functor> numDiff(functor);
 	LevenbergMarquardt<NumericalDiff<lmdif_functor>> lm(numDiff);
 	int info = lm.minimize(se3);
+
+	cout << "se3: " << se3.transpose() << endl;
+	return CameraPose(G.Intrinsic, Vector6d(se3));
 }
 
 }

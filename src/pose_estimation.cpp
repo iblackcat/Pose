@@ -45,6 +45,7 @@ void PoseEstimation::visualization(const Mat &img_1, const Mat &img_2,
 	}
 
 	imshow("result", img_show);
+
 	waitKey(0);
 }
 
