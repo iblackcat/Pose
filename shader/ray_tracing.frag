@@ -128,7 +128,7 @@ void main()
 				FragColor = vec4(R, G, B, A);
 			}
 			weight_tmp = weight;
-			//return ;
+			return ;
 		} /*else if (tmp < 0.0 && s_tmp >= 0.0 && s_tmp < Mu) {
 			return ;
 		}*/

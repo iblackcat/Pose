@@ -49,13 +49,13 @@ bool ImageRectification::get_rectified_pose(const CameraPose &p1, const CameraPo
 	p2_rec = CameraPose(A, R, p2_rec.t);
 	//p2_rec.refreshByARt();
 
-	std::cout << "P1" << std::endl << p1.R << std::endl << p1.t << std::endl;
-	std::cout << "P1_rec" << std::endl << p1_rec.R << std::endl << p1_rec.t << std::endl;
+	//std::cout << "P1" << std::endl << p1.R << std::endl << p1.t << std::endl;
+	//std::cout << "P1_rec" << std::endl << p1_rec.R << std::endl << p1_rec.t << std::endl;
 
-	std::cout << std::endl;
+	//std::cout << std::endl;
 
-	std::cout << "P2" << std::endl << p2.R << std::endl << p2.t << std::endl;
-	std::cout << "P2_rec" << std::endl << p2_rec.R << std::endl << p2_rec.t << std::endl;
+	//std::cout << "P2" << std::endl << p2.R << std::endl << p2.t << std::endl;
+	//std::cout << "P2_rec" << std::endl << p2_rec.R << std::endl << p2_rec.t << std::endl;
 
 	return true;
 }
@@ -66,6 +66,7 @@ void ImageRectification::image_rectification(const u32 *image1, const u32 *image
 	Eigen::Matrix3d rect_tran1 = p1.Q * p1_rec.Q.inverse();
 	Eigen::Matrix3d rect_tran2 = p2.Q * p2_rec.Q.inverse();
 
+	/*
 	Eigen::Vector3d test1 = p2.R * Eigen::Vector3d(245, 211, 1) + p2.t;
 	test1[0] /= test1[2]; test1[1] /= test1[2];
 
@@ -82,15 +83,15 @@ void ImageRectification::image_rectification(const u32 *image1, const u32 *image
 	test2[0] /= test2[2]; test2[1] /= test2[2];
 
 	cout << "test2 : " << test1.transpose() << ", " << test2.transpose() << endl;
-
+	*/
 
 	m_gl_rectify.useRenderer();
 
 	if (!image1_rec) { free(image1_rec); image1_rec = NULL; }
 	if (!image2_rec) { free(image2_rec); image2_rec = NULL; }
 
-	cout << "rect1" << rect_tran1 << endl;
-	cout << "rect2" << rect_tran2 << endl;
+	//cout << "rect1" << rect_tran1 << endl;
+	//cout << "rect2" << rect_tran2 << endl;
 
 	float trans1[16] = { 0 }, trans2[16] = { 0 };
 	for (int i = 0; i < 4; ++i) {
@@ -98,9 +99,9 @@ void ImageRectification::image_rectification(const u32 *image1, const u32 *image
 			if (i == 3 && j == 3) { trans1[i * 4 + j] = 1.0f; trans2[i * 4 + j] = 1.0f; }
 			else if (i == 3 || j == 3) { trans1[i * 4 + j] = 0.0f; trans2[i * 4 + j] = 0.0f; }
 			else { trans1[i * 4 + j] = (float)rect_tran1(j, i); trans2[i * 4 + j] = (float)rect_tran2(j, i); }
-			cout << trans2[i * 4 + j] << " ";
+			//cout << trans2[i * 4 + j] << " ";
 		}
-		cout << endl;
+		//cout << endl;
 	}
 
 	u32 *rec1 = nullptr, *rec2 = nullptr;

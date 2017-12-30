@@ -63,8 +63,40 @@ int main() {
 	cout << G.w << endl;
 
 	jhw_gl::GLInit(G.w, G.h);
+/*
+	u32 *i1_rec = nullptr, *i2_rec = nullptr;
+	
+	CameraPose p1_rec, p2_rec;
+	ImageRectification imagerectify;
+	imagerectify.init();
+	imagerectify.image_rectification(i1, i2, p1, p2, &i1_rec, &i2_rec, p1_rec, p2_rec);
+	DH.writeImage(i1_rec, "out1.png");
+	DH.writeImage(i2_rec, "out2.png");
+	
+	i2_rec = (u32*)DH.readImage("E:/projects/mobilefusion/datasets/stereomatch/cones-png-2/cones/im2.png");
+	i1_rec = (u32*)DH.readImage("E:/projects/mobilefusion/datasets/stereomatch/cones-png-2/cones/im6.png");
 
 
+	StereoMatching stereomatch;
+	cout << "init ok? " << stereomatch.init(StereoMatching::STEREOMATCH_ZNCC) << endl;
+	//float *depth = stereomatch.stereo_matching(i1_rec, p1_rec, i2_rec, p2_rec, 2, 3);
+	float *del1 = nullptr, *del2 = nullptr;
+	stereomatch.disparity_estimation(i1_rec, i2_rec, &del1, &del2);
+	float *depth = stereomatch.lrcheck_and_depth(del1, del2, 1);
+
+
+	u8 *output_depth = (u8*)malloc(sizeof(u8) * G.w * G.h);
+	//DH.writeImage(i2_rec, "out22.png");
+	for (int i = 0; i < G.h; ++i) {
+		for (int j = 0; j < G.w; ++j) {
+			output_depth[i*G.w + j] = (u8)depth[i*G.w + j] * 5;
+		}
+	}
+	DH.writeImage(output_depth, "depth.png", 1);
+	free(output_depth);
+*/
+
+	
 	float model_size = 4.0;
 	printf("please input model size: ");
 	scanf("%f", &model_size);
@@ -74,7 +106,7 @@ int main() {
 
 
 
-	FILE *fin = fopen("res/test3-1.txt", "r");
+	FILE *fin = fopen("res/test.txt", "r");
 	int n = 0;
 	fscanf(fin, "%d", &n);
 
@@ -87,23 +119,34 @@ int main() {
 
 	fscanf(fin, " %s", path1);
 	i1 = (u32*)DH.readImage(path1);
-	CameraPose p1(G.Intrinsic, Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 16));
+	//CameraPose p1(G.Intrinsic, Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 5));
+	CameraPose p1(G.Intrinsic, Eigen::AngleAxisd(-0.5, Eigen::Vector3d(0.0, 1.0, 0.0).normalized()).toRotationMatrix(), Eigen::Vector3d(0, 0, 5));
 	CameraPose p0 = p1;
-	for (int index = 1; index < 3; ++index) {
-		fscanf(fin, "%s", path2);
+	for (int index = 1; index < 100; ++index) {
+		cout << "index: " << index << endl;
+ 		fscanf(fin, "%s", path2);
 		i2 = (u32*)DH.readImage(path2);
 
 		u32		*ii;
 		float	*dd = nullptr;
 		u8		*yy = nullptr;
-		
+
 		CameraPose p2;
+		Eigen::Matrix3d R = Eigen::AngleAxisd(index * 0.05 -0.5, Eigen::Vector3d(0.0, 1.0, 0.0).normalized()).toRotationMatrix();
+		//cout << "R = " << endl;
+		//cout << R << endl;
+		Eigen::Vector3d t = Eigen::Vector3d(0.0, double(index) / 100, 5) ;
+		p2 = mf::CameraPose(G.Intrinsic, R, t);
+		/*
 		//2d2d
 		if (index == 1) {
 			PoseEstimation2d2d poseguess;
 			p2 = poseguess.pose_estimation2d2d(i1, i2);
 			//CameraPose p1 = CameraPose::Identity();
 			p2 = CameraPose(G.Intrinsic, p2.SE3_Rt * p1.SE3_Rt);
+			 
+			cout << "!!!!!p2.R" << endl << p2.R << endl;
+			cout << "!!!!!p2.R.row2" << endl << p2.R.row(2) << endl;
 		}
 		//3d2d
 		else {
@@ -112,32 +155,37 @@ int main() {
 			//free(dd); dd = nullptr;
 			free(yy); yy = nullptr;
 
-			//PoseEstimationDense poseguess;
-			//p2 = poseguess.pose_estimation_dense(i1, dd, i2);
+			PoseEstimationDense poseguess;
+			p2 = poseguess.pose_estimation_dense(i1, dd, i2);
+			cout << "P2 - se3 : " << p2.se3 << endl;
 
-			PoseEstimation3d2d poseguess;
-			p2 = poseguess.pose_estimation3d2d(i1, "res/o_d.png", i2);
+			//PoseEstimation3d2d poseguess;
+			//p2 = poseguess.pose_estimation3d2d(i1, "res/o_d.png", i2);
 
 			p2 = CameraPose(G.Intrinsic, p2.SE3_Rt * p1.SE3_Rt);
 			//CameraPose p1(p2.intrinsics, Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 0));
 		}
+		*/
+
+
 
 		u32 *i1_rec = nullptr, *i2_rec = nullptr;
+		
 		CameraPose p1_rec, p2_rec;
 		ImageRectification imagerectify;
 		imagerectify.init();
 		imagerectify.image_rectification(i1, i2, p1, p2, &i1_rec, &i2_rec, p1_rec, p2_rec);
 		DH.writeImage(i1_rec, "out1.png");
 		DH.writeImage(i2_rec, "out2.png");
-
+		
 		StereoMatching stereomatch;
 		cout << "init ok? " << stereomatch.init(StereoMatching::STEREOMATCH_ZNCC) << endl;
 		//float *depth = stereomatch.stereo_matching(i1_rec, p1_rec, i2_rec, p2_rec, 2, 3);
 		float *del1 = nullptr, *del2 = nullptr;
 		stereomatch.disparity_estimation(i1_rec, i2_rec, &del1, &del2);
-		float *depth = stereomatch.lrcheck_and_depth(del1, del2, 1);
+		float *depth = stereomatch.lrcheck_and_depth(del1, del2, (p1_rec.center-p2_rec.center).norm(), 2);
 
-		/*
+		
 		u8 *output_depth = (u8*)malloc(sizeof(u8) * G.w * G.h);
 		//DH.writeImage(i2_rec, "out22.png");
 		for (int i = 0; i < G.h; ++i) {
@@ -148,7 +196,7 @@ int main() {
 		DH.writeImage(output_depth, "depth.png", 1);
 		free(output_depth);
 		output_depth = nullptr;
-		*/
+		
 
 		tsdfmodel.model_updating(i1_rec, depth, p1_rec);
 
@@ -171,7 +219,10 @@ int main() {
 				}
 			}
 		}
-		*/
+		*/ 
+
+
+
 		imagerectify.destroy();
 		stereomatch.destroy();
 
@@ -181,13 +232,45 @@ int main() {
 		free(depth); depth = nullptr;
 
 		strcpy(path1, path2);
-		//free(i1); i1 = i2;  i2 = nullptr;
-		free(i1); i1 = nullptr;
-		free(i2); i2 = nullptr;
+		free(i1); i1 = i2;  i2 = nullptr;
+		//free(i1); i1 = nullptr;
+		//free(i2); i2 = nullptr;
 		p1 = p2;
 	}
 	DH.writeModel(tsdfmodel.get_modelC(), tsdfmodel.get_modelSW(), 10);
-	tsdfmodel.destroy();
+/*
+	G.h = 4096;
+	G.w = 4096;
 
+	u32 *model = (u32*)DH.readImage("E:/projects/mobilefusion/QtGuiApplication/res/modelSW10.png", 4);
+	u32 *modelc = (u32*)DH.readImage("E:/projects/mobilefusion/QtGuiApplication/res/modelC10.png", 4);
+	vector<Eigen::Vector3i> v;
+	vector<Eigen::Vector3i> vi;
+	for (int i = 0; i < 4096; ++i) {
+		for (int j = 0; j < 4096; ++j) {
+			int f = model[i * 4096 + j] & 0xff;
+			f = f - 128;
+			int w = modelc[i * 4096 + j] & 0xff;
+			if (f > -2 && f < 2 && w > 20) {
+
+				int z = int(i / 256) * 16 + int(j / 256);
+				int y = i - int(i / 256) * 256;
+				int x = j - int(j / 256) * 256;
+				v.push_back(Eigen::Vector3i(x, y, z));
+				vi.push_back(Eigen::Vector3i(modelc[i * 4096 + j] & 0xff, (modelc[i * 4096 + j] >> 8) & 0xff, (modelc[i * 4096 + j] >> 16) & 0xff));
+			}
+		}
+	}
+	FILE *fout = fopen("test_model.ply", "w");
+	fprintf(fout, "ply\nformat ascii 1.0\ncomment author : Greg Turk\ncomment object : another cube\nelement vertex %d\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nelement face 0\nproperty list uchar int vertex_index\nelement edge 0\nproperty int vertex1\nproperty int vertex2\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n", v.size());
+
+	//fprintf(fout, "%d\n", v.size());
+	for (int i = 0; i < v.size(); ++i) {
+		fprintf(fout, "%d %d %d %d %d %d\n", v[i][0], v[i][1], v[i][2], vi[i][0], vi[i][1], vi[i][2]);
+	}
+	fclose(fout);
+*/
+	//tsdfmodel.destroy();
+	
 	return 0;
 }

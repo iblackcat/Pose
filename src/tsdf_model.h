@@ -25,7 +25,7 @@ public:
 	static const int		ModelSize = 256;
 	static const int		ModelTexSize = 4096;
 private:
-	const int				Mu = 4; // 8;
+	const int				Mu = 5;
 
 	float					m_size; // in millimeter
 	u32*					m_modelC = nullptr;

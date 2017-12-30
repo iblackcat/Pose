@@ -150,8 +150,8 @@ bool TSDFModel::ray_tracing(const CameraPose &pose, u32 **image, float **depth, 
 	double tmp = 0.0;
 	int axis_tmp = 0;
 	for (int i = 0; i < 6; ++i) {
-		if (pose.R.col(2).dot(m_axis[i])> tmp) {
-			tmp = pose.R.col(2).dot(m_axis[i]);
+		if (pose.R.row(2).dot(m_axis[i])> tmp) {
+			tmp = pose.R.row(2).dot(m_axis[i]);
 			axis_tmp = i;
 		}
 	}
@@ -160,7 +160,7 @@ bool TSDFModel::ray_tracing(const CameraPose &pose, u32 **image, float **depth, 
 	float iQ[9] = { 0.0 };
 	for (int i = 0; i < 3; ++i) {
 		for (int j = 0; j < 3; ++j) {
-			iQ[i * 3 + j] = invQ(i, j);
+			iQ[i * 3 + j] = invQ(i, j);  //?!
 		}
 	}
 

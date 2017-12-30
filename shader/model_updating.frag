@@ -51,47 +51,52 @@ void main()
 
 	//FragColor = vec4((wP.z*10.0+128.0)/255.0, (wP.z*10.0+128.0)/255.0, (wP.z*10.0+128.0)/255.0, 1.0);
 	//FragColor = vec4((i)/255.0, (i)/255.0, (i)/255.0, 1.0);
-	FragColor = vec4(((vP.z - 10.0) + 128.0) / 255.0, 0.0, 0.0, 1.0);//SW;
+	//FragColor = vec4(((vP.z - 10.0) + 128.0) / 255.0, 0.0, 0.0, 1.0);//SW;
 	//return;
 	
 	if (x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0) FragColor = texture2D(model, st);//vec4(0.6, 0.5, 0.0, 1.0);//
-	else if (d1.a < 1.0/255.0 || d2.a < 1.0/255.0 || d3.a < 1.0/255.0 || d4.a < 1.0/255.0) //todo: 1e-6?
-		FragColor = vec4(0.0, 1.0, 0.0, 1.0); //texture2D(model, st); //
+	//else if (d1.a < 1.0/255.0 || d2.a < 1.0/255.0 || d3.a < 1.0/255.0 || d4.a < 1.0/255.0) //todo: 1e-6?
+	//	FragColor = vec4(0.0, 1.0, 0.0, 1.0); //texture2D(model, st); //
+	else if (d1.r == 0.0 || d2.r == 0.0 || d3.r == 0.0 || d4.r == 0) 
+		FragColor = texture2D(model, st); //vec4(0.0, 1.0, 0.0, 1.0); //
 	else {
 		vec4 D = texture2D(tex_depth, vec2(x, y));
 		//float di = float((double(D.r)*255.0 *256.0*256.0 + double(D.g)*255.0 *256.0 + double(D.b)*255.0) / (256*256));
 		//di = D.r*8.0;
 
 		float di = D.r;
+		/*
 		if (D.r > 80) {
 			FragColor = texture2D(model, st);
 			return;
 		}
+		*/
 		
 		float si = (di - vP.z) * ModelSize / size;
 		vec4 ci = texture2D(tex_image, vec2(x, y));
-		float wi = 5.0;
+		float wi = 1.0;
 
 		//di = D.r*8.0;
 		//si = (di - 10.0);
 		//if (0 == 1) {ci = vec4(0.0, 0.0, 0.0, 0.0); di = 0.0;}
 
-		if (si <= -Mu || si > Mu) FragColor = texture2D(model, st);
-		if (si <= -Mu) FragColor = vec4(0.0, 0.5, 0.5, 1.0);
-		else if (si > Mu) FragColor = vec4(0.0, 0.9, 0.9, 1.0);
+		if (si < -Mu || si > Mu) FragColor = texture2D(model, st);
+		//if (si <= -Mu) FragColor = vec4(0.0, 0.5, 0.5, 1.0);
+		//else if (si > Mu) FragColor = vec4(0.0, 0.9, 0.9, 1.0);
 		else {
 			// R G B W
 			if (isC_flag == 1) {
 				vec4 C  = texture2D(model, st);
 				float W = C.a * 255;
+				wi = 6.0 - abs(si);
 				// todo: W > 50 ?
-				if (W < 50) {
+				if (W < 100) {
 					C.r = (C.r * W + ci.r * wi) / (W + wi);
 					C.g = (C.g * W + ci.g * wi) / (W + wi);
 					C.b = (C.b * W + ci.b * wi) / (W + wi);
 					C.a = (W + wi) / 255;
 				}
-				FragColor = vec4(C.xyz, 1.0); //C;
+				FragColor = C; //vec4(C.xyz, 1.0); //
 			}
 			// S x W F
 			else {

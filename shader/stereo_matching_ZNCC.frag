@@ -10,9 +10,9 @@ uniform sampler2D tex;
 uniform sampler2D tex2;
 out float FragColor;  
 
-int d_max = 64;
+int d_max = 128;
 float MAX_FLOAT = 1000000;
-float pC[64];  ;
+float pC[128];  ;
 
 float dx, dy;
 float avg_i1p, avg_i2p, sig_i1p, sig_i2p, C1, C2, min_C;

@@ -16,7 +16,10 @@ public:
 		, y(0)
 		, d(0) {};
 	const Eigen::Vector2d get_point2d() { return Eigen::Vector2d(x, y); }
-	const Eigen::Vector3d get_point3d() { return Eigen::Vector3d(x*d, y*d, d); }
+	const Eigen::Vector3d get_point3d() { 
+		Eigen::Vector3d p(x*d, y*d, d);
+		return G.Intrinsic.inverse() * p; 
+	}
 	float get_d() { return d; }
 private:
 	float x, y, d;

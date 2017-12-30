@@ -42,6 +42,9 @@
     <ClInclude Include="src\tsdf_model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\pose_estimation_dense.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dataset_helper.cpp">
@@ -69,6 +72,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\tsdf_model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pose_estimation_dense.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

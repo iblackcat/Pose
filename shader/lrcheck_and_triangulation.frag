@@ -35,7 +35,7 @@ void main()
 	//if (delta2*dx > 1.0) delta2 = 1.0/dx;
 
 	if (delta1 == 0.0 || delta2 == 0.0 || my_abs(delta1 - delta2) >= max_diff) {
-		FragColor = 0.0; //FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+		FragColor = 0.0; //FragColor = vec4(0.0, 0.0, 0.0, 0.0); //
 	} else {
 		float depth = baseline * fx / delta1;
 		//double depth = delta1;

@@ -65,7 +65,7 @@ struct my_functor : Functor<double>
 
 struct lmdif_functor : Functor<double>
 {
-	lmdif_functor(u32 *i1, u32 *i2) : Functor<double>(6, g_M) { N = 6; M = g_M; image1 = i1; image2 = i2; }
+	lmdif_functor(u8 *i1, u8 *i2) : Functor<double>(6, g_M) { N = 6; M = g_M; image1 = i1; image2 = i2; }
 	int operator()(const VectorXd &x, VectorXd &fvec) const
 	{
 		//double tmp1, tmp2, tmp3;
@@ -77,7 +77,10 @@ struct lmdif_functor : Functor<double>
 
 		CameraPose pose(G.Intrinsic, Vector6d(x));
 
+		double sum = 0.0; 
+
 		for (int i = 0; i < M; ++i) {
+			
 			Vector3d p1 = PoseEstimationDense::m_points[i].get_point3d();
 			Vector3d p2 = pose.Q * p1 + pose.q;
 			Vector2d m1 = PoseEstimationDense::m_points[i].get_point2d();
@@ -86,13 +89,14 @@ struct lmdif_functor : Functor<double>
 			if (m2[0] >= 0 && m2[0] < G.w && m2[1] >= 0 && m2[1] < G.h) {
 				fvec[i] = binterd(image1, m1[0], m1[1], G.w) - binterd(image2, m2[0], m2[1], G.w);
 				fvec[i] *= fvec[i];
-				cout << i << ": " << fvec[i] << endl;
 			}
 			else {
-				fvec[i] = 255;
+				fvec[i] = 255*255;
 			}
-
-		}
+			
+			sum += fvec[i];
+			//cout << i << ": " << fvec[i] << endl;
+		} 
 		/*
 		for (i = 0; i<15; i++)
 		{
@@ -104,11 +108,13 @@ struct lmdif_functor : Functor<double>
 			fvec[i] = y[i] - (x[0] + tmp1 / (x[1] * tmp2 + x[2] * tmp3));
 		}
 		*/
+		cout << x.transpose() << ": " << sum << endl;
+
 		return 0;
 	}
 private:
 	int N, M;
-	u32 *image1 = nullptr, *image2 = nullptr;
+	u8 *image1 = nullptr, *image2 = nullptr;
 };
 
 
@@ -116,6 +122,10 @@ private:
 CameraPose PoseEstimationDense::pose_estimation_dense(u32 *image1, float *depth1, u32 *image2) {
 	CameraPose pose = CameraPose::Identity();
 	VectorXd se3(6);
+
+	for (int i = 0; i < 6; ++i) {
+		se3[i] = 0.0;
+	}
 
 	int index = 0;
 	for (int i = 10; i < G.h - 10; ++i) {
@@ -131,7 +141,35 @@ CameraPose PoseEstimationDense::pose_estimation_dense(u32 *image1, float *depth1
 	}
 	cout << "index = " << index << endl;
 
-	lmdif_functor functor(image1, image2);
+	u8 *i1 = (u8*)malloc(sizeof(u8)*G.w*G.h);
+	u8 *i2 = (u8*)malloc(sizeof(u8)*G.w*G.h);
+
+	for (int i = 0; i < G.h; ++i) {
+		for (int j = 0; j < G.w; ++j) {
+			int r, g, b, a;
+			if (!image1[i*G.w + j]) i1[i*G.w + j] = 0;
+			else {
+				r = image1[i*G.w + j] & 0xff;
+				g = image1[i*G.w + j] >> 8 & 0xff;
+				b = image1[i*G.w + j] >> 16 & 0xff;
+				a = image1[i*G.w + j] >> 24 & 0xff;
+
+				i1[i*G.w + j] = u8((r * 299 + g * 587 + b * 114 + 500) / 1000);
+			}
+
+			if (!image2[i*G.w + j]) i2[i*G.w + j] = 0;
+			else {
+				r = image2[i*G.w + j] & 0xff;
+				g = image2[i*G.w + j] >> 8 & 0xff;
+				b = image2[i*G.w + j] >> 16 & 0xff;
+				a = image2[i*G.w + j] >> 24 & 0xff;
+
+				i2[i*G.w + j] = u8((r * 299 + g * 587 + b * 114 + 500) / 1000);
+			}
+		}
+	}
+
+	lmdif_functor functor(i1, i2);
 	NumericalDiff<lmdif_functor> numDiff(functor);
 	LevenbergMarquardt<NumericalDiff<lmdif_functor>> lm(numDiff);
 	int info = lm.minimize(se3);
@@ -141,3 +179,5 @@ CameraPose PoseEstimationDense::pose_estimation_dense(u32 *image1, float *depth1
 }
 
 }
+
+
