@@ -9,9 +9,9 @@ uniform int radius; // patch = (2*radius+1)x(2*radius+1)
 uniform sampler2D tex;
 uniform sampler2D tex2;
 
-int d_max = 64;
+int d_max = 128;
 float MAX_FLOAT = 1000000;
-float pC[64];  
+float pC[128];  
 
 
 out float FragColor;  

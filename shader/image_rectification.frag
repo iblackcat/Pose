@@ -26,6 +26,9 @@ void main()
 	else {
 		C = texture2D(tex, vec2(haha.x, haha.y));
 	}
-
+	/*
+	if (int(st.y*m_h) % 35 == 0) 
+		C = vec4(0.71, 0.90, 0.114, 1.0);
+	*/
 	FragColor = C;
 }  

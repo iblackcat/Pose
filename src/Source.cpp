@@ -1,5 +1,7 @@
 #include <cstdio>
 #include <iostream>
+#include <time.h>
+
 #include "utils.h"
 #include "dataset_helper.h"
 #include "pose_estimation2d2d.h"
@@ -63,6 +65,7 @@ int main() {
 	cout << G.w << endl;
 
 	jhw_gl::GLInit(G.w, G.h);
+	
 /*
 	u32 *i1_rec = nullptr, *i2_rec = nullptr;
 	
@@ -120,9 +123,9 @@ int main() {
 	fscanf(fin, " %s", path1);
 	i1 = (u32*)DH.readImage(path1);
 	//CameraPose p1(G.Intrinsic, Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 5));
-	CameraPose p1(G.Intrinsic, Eigen::AngleAxisd(-0.5, Eigen::Vector3d(0.0, 1.0, 0.0).normalized()).toRotationMatrix(), Eigen::Vector3d(0, 0, 5));
+	CameraPose p1(G.Intrinsic, Eigen::AngleAxisd(-0.5, Eigen::Vector3d(0.0, 1.0, 0.0).normalized()).toRotationMatrix(), Eigen::Vector3d(0, 0, 25));
 	CameraPose p0 = p1;
-	for (int index = 1; index < 100; ++index) {
+	for (int index = 1; index < 50; ++index) {
 		cout << "index: " << index << endl;
  		fscanf(fin, "%s", path2);
 		i2 = (u32*)DH.readImage(path2);
@@ -132,10 +135,11 @@ int main() {
 		u8		*yy = nullptr;
 
 		CameraPose p2;
+		
 		Eigen::Matrix3d R = Eigen::AngleAxisd(index * 0.05 -0.5, Eigen::Vector3d(0.0, 1.0, 0.0).normalized()).toRotationMatrix();
 		//cout << "R = " << endl;
 		//cout << R << endl;
-		Eigen::Vector3d t = Eigen::Vector3d(0.0, double(index) / 100, 5) ;
+		Eigen::Vector3d t = Eigen::Vector3d(0.0, double(index) / 100, 25) ;
 		p2 = mf::CameraPose(G.Intrinsic, R, t);
 		/*
 		//2d2d
@@ -170,11 +174,20 @@ int main() {
 
 
 		u32 *i1_rec = nullptr, *i2_rec = nullptr;
-		
+		LARGE_INTEGER t1, t2, freq;
+		QueryPerformanceFrequency(&freq);
+
 		CameraPose p1_rec, p2_rec;
 		ImageRectification imagerectify;
 		imagerectify.init();
+
+		//QueryPerformanceCounter(&t1);
 		imagerectify.image_rectification(i1, i2, p1, p2, &i1_rec, &i2_rec, p1_rec, p2_rec);
+		//QueryPerformanceCounter(&t2);
+
+		//cout << "time: " << (t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart << endl;
+		//scanf("%*d");
+
 		DH.writeImage(i1_rec, "out1.png");
 		DH.writeImage(i2_rec, "out2.png");
 		
@@ -182,21 +195,40 @@ int main() {
 		cout << "init ok? " << stereomatch.init(StereoMatching::STEREOMATCH_ZNCC) << endl;
 		//float *depth = stereomatch.stereo_matching(i1_rec, p1_rec, i2_rec, p2_rec, 2, 3);
 		float *del1 = nullptr, *del2 = nullptr;
-		stereomatch.disparity_estimation(i1_rec, i2_rec, &del1, &del2);
-		float *depth = stereomatch.lrcheck_and_depth(del1, del2, (p1_rec.center-p2_rec.center).norm(), 2);
+		//stereomatch.disparity_estimation(i1_rec, i2_rec, &del1, &del2, 3);
 
+		stereomatch.disparity_estimation(i1, i2, &del1, &del2, 3);
+
+		float *depth = stereomatch.lrcheck_and_depth(del1, del2, (p1_rec.center - p2_rec.center).norm(), 5);
+
+		//float *depth = stereomatch.lrcheck_and_depth(del1, del2, 1, 1);
 		
 		u8 *output_depth = (u8*)malloc(sizeof(u8) * G.w * G.h);
 		//DH.writeImage(i2_rec, "out22.png");
+
 		for (int i = 0; i < G.h; ++i) {
 			for (int j = 0; j < G.w; ++j) {
-				output_depth[i*G.w + j] = (u8)depth[i*G.w + j] * 5 ;
+				output_depth[i*G.w + j] = (u8)del1[i*G.w + j];
+			}
+		}
+		DH.writeImage(output_depth, "delta1.png", 1);
+		
+		for (int i = 0; i < G.h; ++i) {
+			for (int j = 0; j < G.w; ++j) {
+				output_depth[i*G.w + j] = (u8)del2[i*G.w + j];
+			}
+		}
+		DH.writeImage(output_depth, "delta2.png", 1);
+
+		for (int i = 0; i < G.h; ++i) {
+			for (int j = 0; j < G.w; ++j) {
+				output_depth[i*G.w + j] = (u8)depth[i*G.w + j];
 			}
 		}
 		DH.writeImage(output_depth, "depth.png", 1);
 		free(output_depth);
 		output_depth = nullptr;
-		
+		//return 0;
 
 		tsdfmodel.model_updating(i1_rec, depth, p1_rec);
 

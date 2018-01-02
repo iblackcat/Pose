@@ -101,6 +101,7 @@ void StereoMatching::disparity_estimation(const u32 const *image1, const u32 con
 	m_gl_matching.setTexSub2D("tex", m_gl_matching_tex1, 0, GL_TEXTURE0, image1);
 	m_gl_matching.setTexSub2D("tex2", m_gl_matching_tex2, 1, GL_TEXTURE1, image2);
 	d1 = m_gl_matching.RenderScence<float>();
+	//m_gl_matching.testRenderScence();
 
 	m_gl_matching.setUniform1("m_w", G.w);
 	m_gl_matching.setUniform1("m_h", G.h);
@@ -109,6 +110,7 @@ void StereoMatching::disparity_estimation(const u32 const *image1, const u32 con
 	m_gl_matching.setTexSub2D("tex", m_gl_matching_tex1, 0, GL_TEXTURE0, image2);
 	m_gl_matching.setTexSub2D("tex2", m_gl_matching_tex2, 1, GL_TEXTURE1, image1);
 	d2 = m_gl_matching.RenderScence<float>();
+	//m_gl_matching.testRenderScence();
 
 	*delta1 = d1;
 	*delta2 = d2;

@@ -111,12 +111,14 @@ void ImageRectification::image_rectification(const u32 *image1, const u32 *image
 	m_gl_rectify.setUniform4v("Trans", trans1);
 	m_gl_rectify.setTexSub2D("tex", m_gl_tex, 0, GL_TEXTURE0, image1);
 	rec1 = m_gl_rectify.RenderScence<u32>();
+	//m_gl_rectify.testRenderScence();
 
 	m_gl_rectify.setUniform1("m_w", G.w);
 	m_gl_rectify.setUniform1("m_h", G.h);
 	m_gl_rectify.setUniform4v("Trans", trans2);
 	m_gl_rectify.setTexSub2D("tex", m_gl_tex, 0, GL_TEXTURE0, image2);
 	rec2 = m_gl_rectify.RenderScence<u32>();
+	//m_gl_rectify.testRenderScence();
 
 	*image1_rec = rec1;
 	*image2_rec = rec2;

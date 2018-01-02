@@ -1,6 +1,6 @@
 50
-../datasets/3/test0.png
-../datasets/3/test3.png
+../datasets/stereomatch/cones-png-2/cones/im6.png
+../datasets/stereomatch/cones-png-2/cones/im2.png
 ../datasets/3/test4.png
 ../datasets/3/test5.png
 ../datasets/3/test6.png
